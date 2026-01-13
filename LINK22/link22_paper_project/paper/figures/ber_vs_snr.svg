@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400">
+    <rect width="100%" height="100%" fill="white" />
+    <line x1="50" y1="350" x2="590" y2="350" stroke="black" />
+    <line x1="50" y1="50" x2="50" y2="350" stroke="black" />
+    <polyline fill="none" stroke="#1f77b4" stroke-width="2" points="50.00,50.00 140.00,138.21 230.00,213.07 320.00,266.88 410.00,301.01 500.00,324.45 590.00,343.69" /><polyline fill="none" stroke="#ff7f0e" stroke-width="2" points="50.00,120.92 140.00,189.73 230.00,248.12 320.00,290.09 410.00,316.71 500.00,334.99 590.00,350.00" />
+    <rect x="60" y="50" width="12" height="12" fill="#1f77b4" /><text x="78" y="60" font-size="12">Baseline FHSS</text><rect x="60" y="68" width="12" height="12" fill="#ff7f0e" /><text x="78" y="78" font-size="12">Adaptive hopset</text>
+    <text x="320.0" y="390" font-size="12" text-anchor="middle">SNR (dB)</text>
+    <text x="15" y="200.0" font-size="12" text-anchor="middle" transform="rotate(-90 15,200.0)">BER</text>
+</svg>
