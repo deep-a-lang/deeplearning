@@ -1,0 +1,20 @@
+{
+  "random_seed": 42,
+  "snr_db": [-2, 0, 2, 4, 6, 8, 10],
+  "num_bits": 20000,
+  "num_trials": 60,
+  "num_nodes": 12,
+  "num_slots": 24,
+  "frame_hz": 5,
+  "hopset_size": 64,
+  "jammer_occupancy": [0.0, 0.1, 0.2, 0.3, 0.4],
+  "doppler_hz": 180,
+  "clock_drift_ppm": 25,
+  "slot_guard_ms": 0.35,
+  "adaptive_hopset": {
+    "enabled": true,
+    "min_size": 16,
+    "max_size": 64,
+    "update_period_s": 2.0
+  }
+}

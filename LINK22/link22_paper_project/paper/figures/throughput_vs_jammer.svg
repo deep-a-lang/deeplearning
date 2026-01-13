@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400">
+    <rect width="100%" height="100%" fill="white" />
+    <line x1="50" y1="350" x2="590" y2="350" stroke="black" />
+    <line x1="50" y1="50" x2="50" y2="350" stroke="black" />
+    <polyline fill="none" stroke="#1f77b4" stroke-width="2" points="50.00,86.59 185.00,152.44 320.00,218.29 455.00,284.15 590.00,350.00" /><polyline fill="none" stroke="#ff7f0e" stroke-width="2" points="50.00,50.00 185.00,101.22 320.00,174.39 455.00,247.56 590.00,320.73" />
+    <rect x="60" y="50" width="12" height="12" fill="#1f77b4" /><text x="78" y="60" font-size="12">Baseline FHSS</text><rect x="60" y="68" width="12" height="12" fill="#ff7f0e" /><text x="78" y="78" font-size="12">Adaptive hopset</text>
+    <text x="320.0" y="390" font-size="12" text-anchor="middle">Jammer occupancy</text>
+    <text x="15" y="200.0" font-size="12" text-anchor="middle" transform="rotate(-90 15,200.0)">Slot success rate</text>
+</svg>
