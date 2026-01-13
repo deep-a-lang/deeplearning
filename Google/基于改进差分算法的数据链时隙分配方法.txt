@@ -1,0 +1,386 @@
+# 基于改进差分算法的数据链时隙分配方法（中文Markdown整理稿）
+
+> 英文题名：Time Slot Allocation Method of Data Link Based on Improved Difference Algorithm  
+> 期刊：系统仿真学报（Journal of System Simulation）  
+> 卷期：第36卷 第5期（2024年5月）  
+> DOI：10.16182/j.issn1004731x.joss.23-0095  
+
+---
+
+## 论文信息
+
+**作者**：朱宇挺¹，苏焕坤¹，冯小东²，雷诗洁³，傅妍芳⁴  
+**单位**：  
+1. 中国电子科技集团公司第二十研究所，陕西 西安 710068  
+2. 中国空间技术研究院西安分院，陕西 西安 710000  
+3. 西安航天精密机电研究所，陕西 西安 710199  
+4. 西安工业大学计算机科学与工程学院，陕西 西安 710021  
+
+**中图分类号**：TP391.9  
+**文献标志码**：A  
+**文章编号**：1004-731X(2024)05-1242-09  
+
+**收稿日期**：2023-02-06  
+**修回日期**：2023-03-23  
+
+---
+
+## 摘要
+
+针对当前时隙分配策略具有算法单一、容易陷入局部最优、泛化能力弱等问题，基于差分进化算法，引入了混沌算法、自适应变异交叉算法和问题解处理机制，提出了一种基于改进差分进化算法的时隙分配策略。利用混沌算法初始化种群，增加种群多样性避免算法过早收敛；利用选择概率参数使得交叉和变异过程更加灵活，使算法初期增加搜索范围，算法后期增加获取全局最优解的概率。实验结果表明：该算法时隙分配均衡度、稳定性、算法效率和泛化能力均优于差分算法和遗传算法，时隙分配均衡度和算法效率更高、稳定性更好、泛化能力更强。
+
+---
+
+## 关键词
+
+战术数据链；时隙分配；差分进化算法；混沌映射；时隙方差
+
+---
+
+## 引用格式
+
+朱宇挺, 苏焕坤, 冯小东, 等. 基于改进差分算法的数据链时隙分配方法[J]. 系统仿真学报, 2024, 36(5): 1242-1250.
+
+---
+
+## 0 引言
+
+随着现代武器装备和战争技术的发展更新，现代军事体系中对传输与控制数据的实时性、信息量、传递时间等通信要求日益增加；军事信息与环境中对数据的交互处理、资源共享、武器协同和状态感知等作战要求日益提高，使数据通信具有自动处理、高速传输，提供新的通信传输能力，满足现代空战新的作战需求通信方式成为研究热点，数据链应运而生。
+
+当前主流应用的 Link16、Link22 等数据链采用的网络协议为 TDMA 协议。以美军 Link16 数据链为例，为了保证节点战术指挥消息的周期性发送，降低传输过程中的时延，使各个节点的时隙分布尽量均衡，从而保证网络通信质量，将时间分为时元、时帧、时隙三种时间单元进行划分和使用。
+
+研究时隙分配问题本质上是 NP-hard 问题，典型的时隙分配策略分为固定时隙分配、基于竞争时隙分配、动态时隙分配三种。本文针对动态时隙分配策略，利用智能优化算法中差分进化算法进行研究，针对该算法特点进行改进，提出一种基于自适应差分进化算法的动态时隙分配 IADE-TDMA（TDMA based on improved adaptive differential evolution algorithm）策略，引入混沌算法、自适应变异交叉算法和问题解处理机制，降低参数固定取值对算法性能的影响，提升算法的全局寻优能力，得到更加均匀的时隙分配。通过 Matlab 仿真软件对协议性能进行测试，与差分算法和遗传算法协议进行对比，证明 IADE-TDMA 算法在时隙均衡度、泛化能力、可靠性方面性能更优。
+
+---
+
+## 1 相关工作
+
+随着战术要求对时隙需求的日益增加，合理的时隙分配策略对通信网络性能起到重要作用。
+
+- 文献[4] 将时隙分配问题转换成最短路径回路问题，采用遍历算法动态规划路径，但节点数增加时耗大、全局寻优能力较差。  
+- 文献[5] 提出基于遗传算法的动态时隙分配算法，但遗传算法局部搜索能力较差、耗时较多，易导致时隙分配性能下降。  
+- 文献[6] 提出基于灰色关联分析法的混合时隙分配协议，适用于节点较少环境，节点多时信道利用率低。  
+- 文献[7] 提出遗传禁忌搜索的时隙分配算法，提高全局最优概率，但过于依赖固定参数设置，导致变异存在盲目性，未必得到全局最优解。  
+
+针对差分进化算法（DE）的应用研究，DE 以收敛速度快、控制参数设置便捷、鲁棒性强等特点成为热点。文献[10]提出基于差分进化算法的目标分配策略，但控制参数多为经验值，难以适应进化过程动态变化，易早熟。
+
+---
+
+## 2 数学建模
+
+Link16 作为舰艇、陆基、飞机海陆空三军联合作战通信网络，实现战术数据交换与导航识别功能。时隙是 Link16 信道的基本时间单位，可在一段时间内传送一条或多条信息。以 Link-16 为例，将时间按照时元、时帧和时隙 3 种单元进行规划。
+
+> **图1 Link16 战术数据链示意图（Fig.1）**（原图在PDF中）  
+> ![图1-Link16战术数据链示意图](figure1.png)
+
+Link16 的时间重复周期为时元：以 112.5 个 12.8 min 时元为一个周期；一个时元分为 64 个以 12 s 为单位的时帧；其包含 1 536 个长度为 7.8125 ms 的基本时间单位时隙，即时帧周期长为 1 536。
+
+由于时帧包含过多时隙数量，增加时隙分配难度，易导致时隙分配不均匀而使数据链性能降低。本文提出基于改进差分进化算法的时隙分配策略解决此问题。
+
+设一个时帧具有 \(M\) 个时隙（\(A_1,A_2,\dots,A_M\)）。可分配时隙数与待分配时隙数分别为 \(N\) 与 \(O\)（\(N\ge O\)）。理想分配时隙间隔为：
+
+\[
+P=\frac{M}{O}
+\]
+
+设相邻已分配时隙之间的间隔集合为 \(W=\{W_1,W_2,\dots,W_O\}\)，已分配时隙序列为 \(B_1,B_2,\dots,B_O\)。若相邻时隙在本时帧内，则：
+
+\[
+W_j = B_{i+1}-B_i
+\]
+
+若跨到下一时帧，则：
+
+\[
+W_j = B_1 + M - B_{i+1}
+\]
+
+本文使用理想时隙分配间隔 \(P\) 与实际时隙间隔 \(V_i\) 的方差 \(G\) 评价均衡能力：
+
+\[
+G=\sum_{i=1}^{O}\frac{(V_i-P)^2}{P},\quad i=1,2,\dots,O \tag{1}
+\]
+
+方差越小，各时隙越均匀。优化目标函数为：
+
+\[
+T=\left(\sum_{i=1}^{O}\frac{(V_i-P)^2}{P}\right)_{\min} \tag{2}
+\]
+
+约束条件：
+
+\[
+\begin{aligned}
+& P=\frac{M}{O} \\
+& M\ge N\ge O \\
+& B_i\le M,\quad i=1,2,\dots,M
+\end{aligned}
+\]
+
+---
+
+## 3 算法设计与实现
+
+差分进化算法（Differential Evolution, DE）是一种经典高效的元启发算法，通过种群随机搜索，每代个体经历变异、交叉和选择，使种群不断向全局最优引导。其优点为参数少、收敛快、鲁棒性高，但也存在参数设置单一、随机性大、种群多样性丧失、难跳出局部最优、搜索停滞等问题。
+
+本文对 DE 算法进行优化：  
+- 用混沌算法初始化种群，增加多样性避免早熟；  
+- 用选择概率参数使交叉与变异更灵活，使前期扩大搜索范围、后期增强局部勘探能力；  
+- 加入问题解处理机制，避免无序解与重复解影响寻优。
+
+> **图2 IADE-TDMA 算法流程图（Fig.2）**（原图在PDF中）  
+> ![图2-IADE-TDMA算法流程图](figure2.png)
+
+---
+
+### 3.1 种群初始化
+
+利用混沌序列的随机性、遍历性与规律性，引入经典 DE 算法进行改进，使初始群体在寻优空间内更均衡分配。标准 Logistic 混沌映射为：
+
+\[
+X_{i+1}=\mu X_i(1-X_i),\quad i\in\{1,2,\dots\},\ \mu\in(0,4],\ X_i\in(0,1) \tag{3}
+\]
+
+当 \(\mu=4\) 且 \(X_i\notin[0,0.25,0.5,0.75,1]\) 时，可生成区间 \([0,1]\) 的混沌变量。为避免两端区间分布不均，本文将 Logistic 映射改进为：
+
+\[
+X_{i+1}^{\text{new}}=
+\begin{cases}
+0.1+0.8\times \text{rand}(0,1), & 0<X_{i+1}\le 0.1\ \text{或}\ 0.9<X_{i+1}\le 1\\
+X_{i+1}, & \text{else}
+\end{cases} \tag{4}
+\]
+
+将混沌变量映射到解空间的初始化方式为：
+
+\[
+X^{0}_{i,j}=X_{j,\min}-X_{i+1}^{\text{new}}\left(X_{j,\max}-X_{j,\min}\right) \tag{5}
+\]
+
+其中，\(X_{j,\min}\) 为第 \(j\) 维基因边界最小值，\(X_{j,\max}\) 为第 \(j\) 维基因边界最大值。
+
+---
+
+### 3.2 自适应变异和交叉
+
+不同变异策略对 DE 性能影响显著。为提升灵活性，本文在多策略基础上引入自适应方法。
+
+> **表1 常见的变异策略（Table 1）**
+
+| 算法名称 | 策略（LaTeX 表达） |
+|---|---|
+| DE/rand/1 | \(W_i^{G+1}=x_{r_1}^G+F\cdot(x_{r_2}^G-x_{r_3}^G)\) |
+| DE/rand/2 | \(W_i^{G+1}=x_{r_1}^G+F\cdot(x_{r_2}^G-x_{r_3}^G)+F\cdot(x_{r_4}^G-x_{r_5}^G)\) |
+| DE/rand-to-best/1 | \(W_i^{G+1}=x_{r_1}^G+F\cdot(x_{r_2}^G-x_{r_3}^G)+F\cdot(x_{r_4}^G-x_{r_5}^G)\) |
+| DE/rand-to-best/2 | \(W_i^{G+1}=x_{r_1}^G+F\cdot(x_{r_2}^G-x_{r_3}^G)+F\cdot(x_{r_4}^G-x_{r_5}^G)\) |
+| DE/current-to-best/1 | \(W_i^{G+1}=x_{r_1}^G+F\cdot(x_{r_2}^G-x_{r_3}^G)+F\cdot(x_{r_4}^G-x_{r_5}^G)\) |
+
+> 注：以上表格按论文原表内容转写（原PDF中部分“to-best”策略公式与名称存在不一致排版，本文保持原样）。
+
+根据最大迭代次数 \(N_{\max}\) 与当前迭代次数 \(N_{\text{current}}\)，定义选择概率：
+
+\[
+p=\frac{N_{\text{current}}}{N_{\max}} \tag{6}
+\]
+
+用 \(p\) 反映进化程度并选择策略（论文原文中最后一行写作“DE/current-wo-best/2”，更常见表述为 current-to-best，这里保留原写法）：
+
+\[
+\begin{cases}
+\text{DE/rand/1}, & 0<p\le 0.25\\
+\text{DE/current-to-rand/2}, & 0.25<p\le 0.5\\
+\text{DE/rand-to-best/2}, & 0.5<p\le 0.75\\
+\text{DE/current-wo-best/2}, & 0.75<p\le 1
+\end{cases} \tag{7}
+\]
+
+为改善前期全局搜索不足与后期局部勘探不强的问题，采用自适应缩放因子与交叉因子：
+
+\[
+F=F_{\min}+(F_{\max}-F_{\min})e^{-10\left(\frac{N_{\text{current}}}{N_{\max}}\right)^3} \tag{8}
+\]
+
+其中 \(F_{\min}=0.1,\ F_{\max}=0.9\)。
+
+\[
+R=R_{\min}+(R_{\max}-R_{\min})e^{-10\left(\frac{N_{\text{current}}}{N_{\max}}\right)^3} \tag{9}
+\]
+
+其中 \(R\) 为交叉算子，\(R_{\min}=0.1,\ R_{\max}=0.9\)。
+
+---
+
+### 3.3 选择
+
+采用贪婪选择：将子代向量与父代向量逐一比较，若子代更优则替换，否则保留父代：
+
+\[
+y_i^{G+1}=
+\begin{cases}
+x_i^{G+1}, & f(x_i^{G+1})\le f(y_i^{G})\\
+y_i^{G}, & \text{其他}
+\end{cases} \tag{10}
+\]
+
+其中 \(f(\cdot)\) 为优化目标函数，目标为求最小值。
+
+---
+
+### 3.4 问题解处理
+
+差分算法在时隙分配过程中主要遇到两类问题：无序个体解与重复个体解。
+
+1）**无序解**：每个基因代表一个时帧中的时隙，实际时隙应从小到大排序。交叉操作可能产生无序解，需要对其排序，避免对抖动计算与寻优产生负面影响。
+
+> **图3 交叉运算产生无序解（Fig.3）**（原图在PDF中）  
+> ![图3-交叉运算产生无序解](figure3.png)
+
+2）**重复解**：按 Link16 时隙分配要求，同一个体上不能出现重复基因。交叉/变异后需进行基因检测，如有重复则替换为未出现的基因，使其成为可行解。
+
+> **图4 交叉运算产生重复解（Fig.4）**（原图在PDF中）  
+> ![图4-交叉运算产生重复解](figure4.png)
+
+---
+
+## 4 仿真验证
+
+使用 MATLAB R2015b 对 IADE-TDMA 算法进行 Link16 数据链时隙分配策略仿真实验。以式(1) 的时隙间隔方差 \(G\) 表示时隙抖动，以抖动大小衡量时隙均衡度，从 **时隙均衡度、稳定性、算法效率、收敛能力、泛化能力** 5 个方面进行对比，并与差分算法与遗传算法比较。
+
+---
+
+### 4.1 时隙分配均衡度
+
+设时隙总数 100，随机生成空闲时隙 50，需分配时隙 20，结果如图5～6。
+
+> **图5 三种算法时隙分配均衡度对比（Fig.5）**（原图在PDF中）  
+> ![图5-均衡度对比](figure5.png)
+
+> **图6 差分策略与均衡度关系（Fig.6）**（原图在PDF中）  
+> ![图6-策略与均衡度](figure6.png)
+
+结论：三种算法随迭代抖动值降低并趋稳；IADE-TDMA 抖动值低于另外两种算法，分别降低 33.6% 与 19.7%，说明均衡能力更好；并且前期收敛快、后期局部勘探能力好，最终获得更佳全局最优解。
+
+---
+
+### 4.2 稳定性
+
+研究“需分配时隙数/空闲时隙数”与“时隙抖动”关系，如图7～8。
+
+> **图7 需分配时隙数目与时隙抖动关系（Fig.7）**（原图在PDF中）  
+> ![图7-需分配与抖动](figure7.png)
+
+> **图8 空闲时隙数目与时隙抖动关系（Fig.8）**（原图在PDF中）  
+> ![图8-空闲与抖动](figure8.png)
+
+结论：需分配时隙数与抖动成正比；IADE-TDMA 抖动值小于差分与遗传算法，分别降低 28.3% 与 31.9%。空闲时隙数增加时抖动总体减小，均衡能力增强。表明本文算法稳定性较强，可在不同环境下有效处理时隙分配问题。
+
+---
+
+### 4.3 算法效率
+
+固定时隙总数 1 536，空闲时隙 20，逐渐增加需分配时隙数，研究时间开销关系，如图9。
+
+> **图9 需分配时隙数目与时间开销（Fig.9）**（原图在PDF中）  
+> ![图9-时间开销](figure9.png)
+
+结论：时间开销与需分配时隙数基本成正比。当需分配时隙数量为 500 时，差分算法与遗传算法耗时分别为 IADE-TDMA 的 2.1 倍与 5 倍；IADE-TDMA 时间消耗最低。
+
+---
+
+### 4.4 算法收敛能力
+
+对 2 个不同类型多峰基准测试函数进行实验。参数设置：种群个数 \(N_P=50\)，搜索空间维数 \(D=20\)，最大迭代次数 \(T=500\)。
+
+> **表2 基准测试函数（Table 2）**
+
+| 函数名 | 表达式 | 搜索范围 |
+|---|---|---|
+| Schwefel | \(f_8(x)=\sum_{i=1}^{D}\left[-x_i\sin\left(\sqrt{|x_i|}\right)\right]\) | \([-500,500]\) |
+| Rastrigin | \(f_9(x)=\sum_{i=1}^{D}\left[x_i^2-10\cos(2\pi x_i)+10\right]\) | \([-5.12,5.12]\) |
+
+实验结果如表3与图10所示。
+
+> **表3 优化结果对比（Table 3）**
+
+| 函数名 | 算法 | 平均值 | 标准差 |
+|---|---|---:|---:|
+| Schwefel | GA | -5904.77164 | 2806.92982 |
+| Schwefel | DE | -11801.32635 | 574.74197 |
+| Schwefel | IADE-TDMA | -15316.76358 | 86.43589 |
+| Rastrigin | GA | 283.64252 | 18.39023 |
+| Rastrigin | DE | 70.23546 | 41.45723 |
+| Rastrigin | IADE-TDMA | 8.96087 | 9.48523 |
+
+> **图10 三种算法在测试函数中的比较（Fig.10）**（原图在PDF中）  
+> ![图10-测试函数比较](figure10.png)
+
+结论：与 GA、DE 的平均值对比，本文算法全局寻优能力更好；标准差更低，稳定性更强；在求解精度与鲁棒性上均优于另外两种算法。
+
+---
+
+### 4.5 泛化能力
+
+设计 6 组组合验证泛化能力：  
+- \(N=50,\ N_W=12\)  
+- \(N=100,\ N_W=30\)  
+- \(N=300,\ N_W=100\)  
+- \(N=500,\ N_W=300\)  
+- \(N=750,\ N_W=500\)  
+- \(N=1000,\ N_W=700\)
+
+> **图11 三种算法泛化能力对比（Fig.11）**（原图在PDF中）  
+> ![图11-泛化能力对比](figure11.png)
+
+结论：IADE-TDMA 在 6 种环境下抖动值均优于其他两种算法，且收敛能力较好。差分算法与遗传算法前期收敛快但易陷入局部最优；IADE-TDMA 由于引入混沌与自适应变异交叉，提高获得全局最优概率，并具有较好泛化能力。
+
+---
+
+## 5 结论
+
+本文设计了一种基于改进差分进化算法的时隙分配策略。通过引入混沌算法与自适应策略，不仅提高算法前期勘探能力，而且增强获取全局最优解的概率。仿真验证表明算法时隙均衡能力好、稳定性高、算法效率佳、收敛能力与泛化能力强。
+
+但考虑到不断增加的战术通信需求，需要进一步分析通信网络态势感知，结合机器学习改进时隙分配策略，将是后续工作重点。
+
+---
+
+## 参考文献
+
+[1] 吕娜. 数据链理论与系统[M]. 北京: 电子工业出版社, 2011.  
+Lü Na. Theory and System of Data Link[M]. Beijing: Publishing House of Electronics Industry, 2011.
+
+[2] 梅文华, 蔡善法. JTIDS/Link16数据链[M]. 北京: 国防工业出版社, 2007.
+
+[3] 王文政. 战术数据链时隙分配协议及其仿真研究[D]. 长沙: 国防科学技术大学, 2010.  
+Wang Wenzheng. Study on Slot Assignment Protocol and Its Simulation for Tactical Data Links[D]. Changsha: National University of Defense Technology, 2010.
+
+[4] 刘星, 何肇雄, 周经伦. TDMA战术数据链中最小时延抖动的固定时隙分配算法[J]. 系统工程, 2012, 30(6): 90-94.  
+Liu Xing, He Zhaoxiong, Zhou Jinglun. A Minimum-jitter Fixed Timeslot Allocation Algorithm for TDMA Tactical Data Link[J]. Systems Engineering, 2012, 30(6): 90-94.
+
+[5] 陈嘉远, 钟章队, 刘强. 基于遗传算法的TDMA战术数据链时隙分配算法[J]. 火力与指挥控制, 2015, 40(8): 97-100.  
+Chen Jiayuan, Zhong Zhangdui, Liu Qiang. Time Slot Allocation Algorithm for TDMA Tactical Data Link Based on Genetic Algorithms[J]. Fire Control & Command Control, 2015, 40(8): 97-100.
+
+[6] 傅妍芳, 张楠, 魏佳宁, 等. 基于OPNET的机群数据链混合TDMA协议仿真[J]. 系统仿真学报, 2022, 34(9): 1933-1940.  
+Fu Yanfang, Zhang Nan, Wei Jianing, et al. OPNET Based Simulation of Hybrid TDMA Protocol for Helicopters Datalink[J]. Journal of System Simulation, 2022, 34(9): 1933-1940.
+
+[7] 王瑞, 孙晓伟, 毛忠阳, 等. 基于遗传禁忌搜索的时隙分配算法[J]. 电子测量技术, 2022, 45(10): 82-86.  
+Wang Rui, Sun Xiaowei, Mao Zhongyang, et al. Slot Allocation Algorithm Based on Genetic and Tabu Search[J]. Electronic Measurement Technology, 2022, 45(10): 82-86.
+
+[8] 张春美, 陈杰, 辛斌. 武器目标分配问题的离散差分进化算法[J]. 北京理工大学学报, 2014, 34(3): 289-293, 321.  
+Zhang Chunmei, Chen Jie, Xin Bin. A Discrete Differential Evolution Algorithm for the Weapon Target Assignment Problem[J]. Transactions of Beijing Institute of Technology, 2014, 34(3): 289-293, 321.
+
+[9] 马悦, 吴琳, 郭圣明. 基于改进差分进化算法的作战目标分配[J]. 指挥控制与仿真, 2022, 44(4): 31-41.  
+Ma Yue, Wu Lin, Guo Shengming. Operational Targets Assignment Based on Improved DE Algorithm[J]. Command Control & Simulation, 2022, 44(4): 31-41.
+
+[10] 鲁军, 李鹏飞. 基于差分进化算法的雷达网目标分配方法研究[J]. 舰船电子工程, 2022, 42(8): 29-32, 54.  
+Lu Jun, Li Pengfei. Research on Radar Network Target Assignment Method Based on Differential Evolution Algorithm[J]. Ship Electronic Engineering, 2022, 42(8): 29-32, 54.
+
+[11] 赵志勇, 毛忠阳, 张嵩, 等. 数据链系统与技术[M]. 北京: 电子工业出版社, 2014.  
+Zhao Zhiyong, Mao Zhongyang, Zhang Song, et al. Data Link System and Technology[M]. Beijing: Publishing House of Electronics Industry, 2014.
+
+[12] 丁青锋, 尹晓宇. 差分进化算法综述[J]. 智能系统学报, 2017, 12(4): 431-442.  
+Ding Qingfeng, Yin Xiaoyu. Research Survey of Differential Evolution Algorithms[J]. CAAI Transactions on Intelligent Systems, 2017, 12(4): 431-442.
+
+[13] Tian Mengnan, Gao Xingbao, Dai Cai. Differential Evolution with Improved Individual-based Parameter Setting and Selection Strategy[J]. Applied Soft Computing, 2017, 56: 286-297.
+
+[14] 孙凤山, 范孟豹, 曹丙花, 等. 基于混沌映射与差分进化自适应教与学优化算法的太赫兹图像增强模型[J]. 仪器仪表学报, 2021, 42(4): 92-101.  
+Sun Fengshan, Fan Mengbao, Cao Binghua, et al. The Terahertz Image Enhancement Model Based on Adaptive Teaching-learning Based Optimization Algorithm with Chaotic Mapping and Differential Evolution[J]. Chinese Journal of Scientific Instrument, 2021, 42(4): 92-101.

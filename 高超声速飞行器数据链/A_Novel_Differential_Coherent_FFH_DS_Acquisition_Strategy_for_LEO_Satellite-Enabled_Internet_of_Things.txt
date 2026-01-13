@@ -1,0 +1,1057 @@
+# 面向低轨卫星增强物联网的差分相干 FFH/DS 捕获新策略（中文完整翻译 · 第1部分）
+
+> 原文题目：**A Novel Differential Coherent FFH/DS Acquisition Strategy for LEO Satellite-Enabled Internet of Things**  
+> 期刊：IEEE Internet of Things Journal, Vol. 10, No. 23, 1 Dec. 2023, pp. 20297–20310  
+> DOI：10.1109/JIOT.2023.3283372  
+> 作者：Xin Jin, Xuanhe Yang, Shixun Luo, Shuai Wang (Senior Member, IEEE), Jianping An (Senior Member, IEEE)
+
+---
+
+## 摘要（Abstract）
+
+随着对空天地一体化物联网（IoT）的需求不断增长，低轨（LEO）卫星可被视为对 IoT 网络的重要补充。由于卫星轨道信息相对透明、传输链路暴露在开放空间中，卫星—地面通信容易遭受窃听与干扰攻击。建立传输链路时最关键的过程之一是**信号捕获（acquisition）**。现有跳频/直扩（FH/DS）信号捕获算法要么对于 LEO 卫星的短可见窗口而言耗时过长，要么对 LEO 终端带来过大的资源消耗。为缓解这一问题，本文提出一种面向 LEO 卫星增强 IoT 的**差分相干累加（differential coherent accumulation）**捕获策略，在性能与复杂度之间实现折中，并证明该策略能在**低载噪比（CNR）**和**大动态**条件下实现高性能捕获。
+
+在 AWGN 信道下，本文推导并仿真了所提策略的虚警概率、检测概率、计算复杂度，以及时延与多普勒因子的均方误差（MSE）。数值结果表明：与非相干累加策略相比，所提策略在相同检测性能下可获得约 **1.6 dB** 的性能提升，代价是复杂度仅增加约 **0.43%**。
+
+---
+
+## 关键词（Index Terms）
+
+捕获；差分相干累加；物联网；低轨卫星
+
+---
+
+# I. 引言（INTRODUCTION）
+
+随着无线通信技术快速发展，物联网（IoT）网络在现代社会的生产与生活中得到广泛应用。然而，仅依赖现有地面基础设施难以实现真正意义上的空天地一体化 IoT 覆盖。卫星网络能够提供广覆盖、低依赖地面设施的通信能力，尤其适用于偏远地区与海洋等场景，因此可作为 IoT 网络的重要补充。
+
+作为卫星网络的重要组成部分，低轨（LEO）卫星具备链路损耗较小、传播时延较低、发射成本相对更低等优势，有利于满足卫星增强 IoT 的多样化需求。但与此同时，随着网络节点数量快速增长以及无线信道的开放性，LEO 卫星增强 IoT 系统更容易受到非故意干扰与恶意压制等攻击。因此，从物理层角度提升抗干扰能力具有重要意义。
+
+常见的物理层抗干扰技术主要基于扩频通信系统，例如：直序扩频（DSSS）、跳频扩频（FHSS）、跳时扩频（THSS）。然而在高功率、大带宽、复杂化干扰不断演进的趋势下，单一扩频体制往往难以满足新型对抗环境的需求。FH/DS 混合扩频结合了 DSSS 与 FHSS 的优势，同时具备较强的抗干扰能力与低可探测概率，已被广泛用于军民通信系统。
+
+根据每个跳频驻留（hop dwell）内承载符号数的不同，FH/DS 可分为慢跳 FH/DS（SFH/DS）与快跳 FH/DS（FFH/DS）。在 FFH/DS 中，一个符号跨多个跳频频点传输，能够有效抵抗突发错误，因此特别适合强干扰环境。
+
+在卫星—地面链路建立过程中，**捕获**是基础环节：需要判断信号是否存在，并估计关键参数（如传播时延与多普勒相关参数），以便后续跟踪与解调。对于 LEO 上行链路，由于卫星与地面终端的可见窗口较短，捕获必须足够快速；同时，由于 LEO 卫星与地面用户间的相对径向速度变化快，多普勒效应显著，导致参数估计更困难。更重要的是，卫星增强 IoT 终端往往体积小、功耗低、算力有限，因此捕获算法必须在**性能、时延与复杂度**之间做权衡。
+
+（以下略去对相关工作的逐条讨论：原文在此部分回顾了 FFH/DS 及其抗干扰背景、捕获需求与挑战，并指出现有算法在 LEO 场景下面临“窗口短/算力受限/大动态”的矛盾，从而引出本文提出的差分相干累加捕获策略。）
+
+---
+
+# II. 系统模型（SYSTEM MODEL）
+
+本节给出带有传播时延与多普勒效应的 FFH/DS 导频（pilot）接收信号模型，并说明接收机在捕获阶段进行相关与多普勒搜索的处理框架。
+
+> **符号说明（按原文语境）**：  
+> - $d$：符号索引（symbol index）  
+> - $k$：跳频索引（hop index）  
+> - $T_s$：符号时长（symbol duration）  
+> - $T_h$：单跳驻留时长（hop duration）  
+> - $L$：直扩处理增益（每跳内码片数，$T_h = L T_c$）  
+> - $T_c$：码片时长（chip duration）  
+> - $f_c$：射频载频  
+> - $f_k$：第 $k$ 跳频点的频率偏置（相对载频）  
+> - $\tau$：传播时延（或等效码相位）  
+> - $\alpha$：归一化多普勒因子（与相对径向速度相关）  
+> - $L_p$：路径损耗系数  
+> - $\theta$：相对于接收机本振的随机初相  
+> - $C_k(t)$：第 $k$ 跳对应的直扩波形（由 PN 码与成形滤波形成）
+
+---
+
+## A. 接收机看到的第 $d$ 个符号的第 $k$ 跳（kth hop of the dth Symbol Seen by the Receiver）
+
+为便于理解，先忽略随机传播时延、多普勒效应与热噪声，仅讨论导频中第一个符号（$d=1$）的第一跳（$k=1$）波形。此时该跳内的理想接收波形写为：
+
+$$
+S_{1,1}(t)= L_p\, C_1(t)\, e^{j2\pi(f_c+f_1)t}\, e^{j\theta}.
+\tag{1}
+$$
+
+其中，$\theta$ 为接收信号射频载波相对于接收机射频本振（LO）的随机初相；$C_1(t)$ 是该跳对应的直扩波形。原文将其写为离散 PN 码序列与码片成形脉冲 $h(t)$ 的叠加形式（这里保持原意）：
+
+$$
+C_1(t)=\sum_{l=1}^{L-1} c_k[[l+1]]\, h(t-lT_c),
+$$
+
+$L_p$ 为由传播距离导致的路径损耗项。需要注意的是，在式 (1) 的语境下，时间原点 $t=0$ 表示 **$(d=1,k=1)$ 相关窗（correlation window, CW）**的起始时刻（原文在图中以“★/✩”标注）。
+
+接下来考虑更一般的情形：传播时延与多普勒效应同时存在。设该波形相对于 $(d=1,k=1)$ 的 CW 发生了 $\tau$ 秒的延迟，同时接收机观测到的归一化多普勒因子为 $\alpha$，则该跳的接收波形可写为：
+
+$$
+s_{1,1}(t)
+= L_p\, C_1\!\big((1+\alpha)(t-\tau)\big)\,
+e^{j2\pi(1+\alpha)(f_c+f_1)(t-\tau)}\, e^{j\theta}.
+\tag{2}
+$$
+
+接收机的射频本振与跳频本振用于下变频，剥离不受多普勒影响的频率项后，可得到复基带等效信号（原文称 complex-valued baseband equivalent）：
+
+$$
+r_{1,1}(t)
+= L_p\, C_1(t-\tau)\, e^{j2\pi\alpha(f_c+f_1)t}\,
+e^{-j2\pi(1+\alpha)(f_c+f_1)\tau}\, e^{j\theta}.
+\tag{3}
+$$
+
+为简化起见，全文假设：多普勒效应主要表现为**频偏**，对码片率 $R_c$ 的影响可忽略。该假设等价于近似：
+
+$$
+C_1\!\big((1+\alpha)(t-\tau)\big) \approx C_1(t-\tau),
+$$
+
+该近似在实际系统中通常成立（尤其当码片率远大于残余频偏相关尺度时）。
+
+将上述推导推广到任意符号 $d$、任意跳 $k$，可写出通用的复基带模型：
+
+$$
+r_{d,k}(t)
+= L_p\, C_k(t-\tau_{d,k})\,
+e^{j2\pi\alpha(f_c+f_k)t}\,
+e^{j\theta_{d,k}}.
+\tag{4}
+$$
+
+其中，$\tau_{d,k}$ 为在第 $(d,k)$ 个相关窗语境下的等效时延参数，$\theta_{d,k}$ 为相位项。原文给出：
+
+$$
+\begin{cases}
+\tau_{d,k}=\tau-\alpha\cdot T_{d,k},\\[4pt]
+T_{d,k}=(d-1)T_s+(k-1)T_h,\\[4pt]
+\theta_{d,k}=\theta+2\pi\alpha f_c T_{d,k}-2\pi(1+\alpha)f_c\tau
+-2\pi(1+\alpha)f_k\tau_{d,k}.
+\end{cases}
+\tag{5}
+$$
+
+同样需要强调：式 (4) 中 $t=0$ 的含义是**对应 CW 的起点**，即 $(d,k)$ 相关窗的起始时刻（原文在图中以“✩”标注）。当 $d=k=1$ 时，式 (4) 会退化为式 (3)。
+
+---
+
+### 图 1（占位）
+> **图 1**：接收信号的波形结构与相关窗（CW）定义示意（原文展示 $\tau$ 与多普勒导致的错位关系，以及 $(d,k)$ CW 的时间对齐方式）。
+
+---
+
+## B. 相关与多普勒搜索（Correlation and Doppler Search Prior to Cross-Symbol and Cross-Hop Accumulation）
+
+接收机对每个 $(d,k)$ 的 CW 进行匹配滤波（matched filter, MF）与相关处理。令扩频码经过成形滤波后的等效波形为 $\tilde C_k(\cdot)=C_k(\cdot)*h(\cdot)$，则 MF 输出可写为：
+
+$$
+\tilde r_{d,k}(t)
+= L_p\, \tilde C_k(t-\tau_{d,k})\,
+e^{j2\pi\alpha(f_c+f_k)t}\,
+e^{j\theta_{d,k}}.
+\tag{6}
+$$
+
+原文指出：项 $e^{j2\pi\alpha(f_c+f_k)t}$ 若相对于滤波器带宽而言频偏很小，则几乎“透明”通过 MF。常见工程条件为：
+
+$$
+R_c \gg \alpha(f_c+f_k),
+$$
+
+因此该近似通常成立。
+
+接下来进行采样。原文设采样率为码片率的 2 倍，即采样间隔：
+
+$$
+T_{smp}=T_c/2,
+$$
+
+这意味着传播时延 $\tau$ 的时间分辨率为 $T_c/2$。由于每个相关窗长度为 $2T_h=2LT_c$，因此每个 CW 内有 $4L$ 个复采样点，可将其组成向量：
+
+$$
+\mathbf r_{d,k}\in\mathbb C^{4L\times 1}.
+$$
+
+之后对该向量做 $4L$ 点 FFT，记为：
+
+$$
+\mathbf r_{d,k}=\mathcal F(\mathbf r_{d,k})\in\mathbb C^{4L\times 1}.
+$$
+
+为了完成多普勒（残余频偏）搜索，原文将 $\mathbf r_{d,k}$ 并行送入 $M$ 个循环移位（cyclic shifting）通道。在第 $m$ 个通道中，将频域序列循环移位 $m$ 个 bin，等价于用一个“虚拟二次本振”补偿多普勒项 $e^{j2\pi\alpha(f_c+f_k)t}$，该虚拟本振写作：
+
+$$
+e^{-j (R_h/2)\,2\pi m t},
+$$
+
+其中
+
+$$
+R_h=\frac{1}{T_h}.
+$$
+
+本地频域 PN 模板记为 $\mathbf c_k\in\mathbb C^{4L\times 1}$。原文采用对 PN 码采样并在末尾补零的方式构造：前 $2L$ 个样点对应有效 PN 码波形，后 $2L$ 个样点补零，以适配 $4L$ 点 FFT/IFFT 的长度。完成频域相乘并 IFFT 后，可得到每个通道的相关输出。
+
+由于 $\tau_{d,k}$ 的不确定范围仅为 $[0,T_h)$（即 CW 长度的一半），因此 IFFT 输出中仅有 50% 是有效相关数据；丢弃冗余部分后，每个通道得到长度为 $2L$ 的相关输出向量。把 $M$ 个通道的相关结果叠成矩阵：
+
+$$
+\mathbf A_{d,k}
+=\{\mathbf a_{d,k}^{-(M/2)+1},\mathbf a_{d,k}^{-(M/2)+2},\ldots,\mathbf a_{d,k}^{(M/2)}\}
+\in\mathbb C^{2L\times M}.
+$$
+
+原文特别关注 $\mathbf A_{d,k}[[n_0,m_0]]$（第 $m_0$ 个通道相关输出的第 $n_0$ 个元素），并给出 $m_0,n_0$ 的含义为在离散网格上最接近真实参数的位置：
+
+$$
+\begin{cases}
+m_0=\arg\min_m\left|\dfrac{R_h}{2}m-\alpha(f_c+f_k)\right|,\\[8pt]
+n_0=\arg\min_n\left|\dfrac{T_c}{2}n-\tau_{d,k}\right|.
+\end{cases}
+\tag{7}
+$$
+
+式 (7) 表明：当 $(n,m)=(n_0,m_0)$ 时，多普勒效应（至少在粗粒度上）被抵消，接收导频的 PN 码也与本地 PN 码副本大致对齐，因此 $|\mathbf A_{d,k}|$ 会在该点处形成显著峰值，该峰值对捕获算法至关重要。
+
+---
+
+### 图 2（占位）
+> **图 2**：接收信号波形与相关窗（CW）的定义（原文示意 CW 覆盖范围与峰值位置）。
+
+### 图 3（占位）
+> **图 3**：CW 内采样点构成向量并进行 FFT/循环移位/频域相乘/IFFT 得到相关输出矩阵的处理流程示意。
+
+---
+
+接下来，原文将“正确多普勒通道”补偿后的等效输入信号写为连续形式（用于分析相关峰相位）：
+
+$$
+\tilde S(t)=
+L_p\,\tilde C_k(t-\tau_{d,k})\,
+e^{j2\pi \tilde\alpha (f_c+f_k)t}\,
+e^{j\theta_{d,k}},
+\tag{8}
+$$
+
+其中 $\tilde\alpha$ 定义为：
+
+$$
+\tilde\alpha(f_c+f_k)=\alpha(f_c+f_k)-\frac{R_h}{2}m_0.
+$$
+
+由于 $\tilde S(t)$ 与本地 PN 码波形的有效相关区间为 $[\tau_{d,k},\,\tau_{d,k}+T_h]$，因此相关峰的相位可表示为（原文给出展开式，并进一步整理得到对符号索引 $d$ 的线性关系）：
+
+$$
+\arg\{\mathbf A_{d,k}\}
+=
+-2\pi \tilde\alpha(f_c+f_k)\alpha(d-1)T_s
++2\pi\alpha^2 f_k(d-1)T_s
++2\pi\alpha f_c(d-1)T_s
++2\pi\alpha f_k(d-1)T_s
++\theta(k).
+\tag{9}
+$$
+
+其中 $\theta(k)$ 仅是跳索引 $k$ 的函数，与符号索引 $d$ 无关。原文给出其具体形式：
+
+$$
+\begin{aligned}
+\theta(k)=\;&
+\theta
++2\pi \tilde\alpha(f_c+f_k)\tau
+-2\pi \tilde\alpha(f_c+f_k)\alpha(k-1)T_h
++2\pi \tilde\alpha(f_c+f_k)\frac{T_h}{2}\\
+&-2\pi(1+\alpha)(f_c+f_k)\tau
++2\pi(1+\alpha)\alpha f_k(k-1)T_h
++2\pi\alpha f_c(k-1)T_h .
+\end{aligned}
+\tag{10}
+$$
+
+式 (9)–(10) 的关键含义是：相关峰相位随 $d$、$k$ 变化，若要在 $d$ 与 $k$ 两个维度上对相关峰进行累加（以提高捕获检测性能），必须处理相位不一致问题。这为后续的“非相干累加 / 相干累加 / 本文提出的差分相干累加”奠定了模型基础。
+
+---
+
+## C. 关于 $\tau$ 的不确定范围（On the Uncertainty Range of $\tau$）
+
+为了便于建立信号模型并表述捕获问题，前面在图示中隐含将 $\tau$ 限制在相对较窄的不确定范围 $[0,T_h)$ 内。然而，将其推广到更一般的情况 $\tau\in[0,T_s)$ 是直接的。
+
+在前两小节中，我们说明了如何用一组由 $D\times K$ 个相关窗构成的 CW “窗组（bank）”覆盖 $[0,T_h)$ 的不确定范围。由于：
+
+$$
+[0,T_s)=[0,T_h)\cup[T_h,2T_h)\cup\cdots\cup[(K-1)T_h,\,T_s),
+$$
+
+因此其余的 $(K-1)$ 个长度为 $T_h$ 的区间也可分别用 $(K-1)$ 个 CW 窗组覆盖。相邻两个窗组之间在时间上相差 $T_h$ 秒。
+
+**总结**：将 $\tau$ 的搜索范围从 $[0,T_h)$ 扩展到 $[0,T_s)$，本质代价是把搜索规模按比例扩大（约扩大 $K$ 倍），相应地计算复杂度也按相同数量级增加。
+
+# 面向低轨卫星增强物联网的差分相干 FFH/DS 捕获新策略（中文完整翻译 · 第2部分：III–IV章）
+
+---
+
+# III. 所提方案（PROPOSED SCHEME）
+
+根据第 II 节的分析，有必要将**单跳相关峰**集合 $\{A_{d,k}\mid 1\le d\le D,\,1\le k\le K\}$ 同时沿跳索引 $k$（跨跳，cross-hop）以及沿符号索引 $d$（跨符号，cross-symbol）进行累加，从而尽可能利用导频信号的每一份能量。因此，**累加策略**对 FFH/DS 捕获至关重要。
+
+本节首先简要介绍 FFH/DS 系统中两种已有的累加方法：  
+1）**非相干累加（noncoherent）**；  
+2）**相干累加（coherent）**。  
+随后将详细给出本文提出的 **差分相干累加（differential coherent accumulation）** 捕获策略。
+
+---
+
+## A. 非相干累加策略（Noncoherent Accumulation Strategy）
+
+由式 (9) 可知，相关峰 $A_{d,k}$ 的相位在不同 $(d,k)$ 上会随机偏离，因此在累加前必须处理相位问题。如图 4 所示，非相干累加的思想是：对相关输出取**平方幅度**，以消除相位影响，然后将不同跳、不同符号的相关结果相加。
+
+因此，相关峰累加统计量可表示为：
+
+$$
+Y=\sum_{k=1}^{K}\left[\sum_{d=1}^{D}\left([\Re(A_{d,k})]^2+[\Im(A_{d,k})]^2\right)\right].
+\tag{11}
+$$
+
+---
+
+### 图 4（占位）
+> **图 4**：非相干累加策略框图（Block diagram of the noncoherent accumulation strategy）  
+> 典型流程：$I^2+Q^2 \rightarrow$ 跨符号累加 $\rightarrow$ 跨跳累加。
+
+---
+
+## B. 相干累加策略（Coherent Accumulation Strategy）
+
+如图 5 所示，相干累加策略要求相关结果在累加时**不进行平方或差分**，而是直接相干相加。因此，需要对多普勒因子与时延进行搜索并补偿，且搜索间隔应足够精细。
+
+为提高相干累加的精度，原文将多普勒与时延的搜索间隔分别设置为：
+
+- 多普勒搜索间隔：$R_h/2^N$  
+- 时延搜索间隔：$T_c/G$
+
+当 $R_h/2^N$ 足够小时，有 $\Delta\alpha(f_c+f_k)\approx 0$，并且项 $\alpha^2$ 可忽略，则式 (9) 中相关峰相位可近似改写为：
+
+$$
+\arg[A_{d,k}] \approx -2\pi(1+\alpha)(f_c+f_k)\tau
++2\pi\alpha(f_c+f_k)T_{d,k}+\theta.
+\tag{12}
+$$
+
+因此，所需的相位补偿量可写为：
+
+$$
+\theta_{\mathrm{comp}}
+=
+-2\pi(1+\hat{\alpha})(f_c+f_k)\hat{\tau}
++2\pi\hat{\alpha}(f_c+f_k)T_{d,k},
+\tag{13}
+$$
+
+其中
+
+$$
+\hat{\alpha}(f_c+f_k)=\frac{m_0R_h}{2^N},\qquad
+\hat{\tau}=\frac{n_0T_c}{G}.
+$$
+
+于是，相干累加策略下的相关峰累加统计量为：
+
+$$
+Y=\sum_{k=1}^{K}\left[\sum_{d=1}^{D}\left(A_{d,k}e^{-j\theta_{\mathrm{comp}}}\right)\right].
+\tag{14}
+$$
+
+相干累加可视作一种最大似然意义下的累加方式，能够充分利用导频能量，但需要更高的计算复杂度。
+
+---
+
+### 图 5（占位）
+> **图 5**：相干累加策略框图（Block diagram of the coherent accumulation strategy）  
+> 典型流程：相位补偿 $\rightarrow$ 跨符号累加 $\rightarrow$ 跨跳累加。
+
+---
+
+## C. 本文提出的差分相干捕获策略（Proposed Differential Coherent Acquisition Strategy）
+
+非相干累加通过对相关峰平方来消除相位影响，复杂度低，但平方运算会带来显著性能损失；相干累加性能好，但计算复杂度很高。考虑到 LEO 卫星终端资源受限且对高捕获性能有需求，本文提出一种**差分相干累加捕获策略**，在较小复杂度增加的代价下提升捕获性能。
+
+本文将第 II 节建立的信号模型用于所提捕获算法。算法包含以下 **四个步骤**（如图 6 所示）：
+
+- **Step 1**：下变频（down-conversion）；  
+- **Step 2**：基于 FFT 的相关与多普勒搜索；  
+- **Step 3**：差分相干累加；  
+- **Step 4**：门限检测（threshold test）完成信号检测与参数估计。
+
+---
+
+### 图 6（占位）
+> **图 6**：所提差分相干累加捕获策略框图（Block diagram of the proposed differential coherent accumulation acquisition strategy）  
+> Step1 下变频 → Step2 相关与多普勒搜索 → Step3 跨符号差分相干 + 跨跳相位预补偿 + 累加 → Step4 最大搜索 + 门限判决。
+
+---
+
+### 1）Step 1（下变频 Down Conversion）
+
+根据第 II 节，在相关与多普勒搜索前，需要剥离 RF 本振与跳频本振的影响，即进行下变频。式 (4) 已给出了第 $d$ 个符号第 $k$ 跳的下变频结果。
+
+---
+
+### 2）Step 2（FFT 实现的相关与多普勒搜索）
+
+如图 3 所示并在第 II 节中分析，第二步为“相关与多普勒因子搜索”。实现流程为：FFT → 频域循环移位（实现多普勒并行搜索）→ 与本地 PN 码模板相乘 → IFFT → 截断去冗余，得到相关输出矩阵 $\mathbf A_{d,k}$ 与相关峰 $A_{d,k}$（参见第 II 节定义）。
+
+---
+
+### 3）Step 3（差分相干累加 Differential Coherent Accumulation）
+
+由式 (9) 与 (10) 可知，相关峰的相位可分为两部分：  
+- 第一部分仅与符号索引 $d$ 有关；  
+- 第二部分仅与跳索引 $k$ 有关。
+
+首先，对第 $(d,k)$ 个相关峰取共轭并与第 $(d+1,k)$ 个相关峰相乘，即在**跨符号方向**进行差分相干处理。差分相干后的相关峰相位可表示为：
+
+$$
+\arg\!\left[A_{d+1,k}\cdot A_{d,k}^*\right]
+=
+-2\pi\Delta\alpha(f_c+f_k)\alpha T_s
++2\pi\alpha^2 f_kT_s
++2\pi\alpha f_cT_s
++2\pi\alpha f_kT_s.
+\tag{15}
+$$
+
+根据多普勒效应，多普勒因子 $\alpha$ 可表示为 $\alpha=v/c$，其中 $v$ 为收发相对径向速度，$c$ 为光速。在实际场景中 $v\ll c$，因此 $2\pi\Delta\alpha(f_c+f_k)\alpha T_s$ 与 $2\pi\alpha^2 f_kT_s$ 非常小，可忽略，从而 (15) 可近似改写为：
+
+$$
+\arg\!\left[A_{d+1,k}\cdot A_{d,k}^*\right]
+=
+2\pi\alpha f_cT_s
++2\pi\alpha f_kT_s.
+\tag{16}
+$$
+
+式 (16) 的第一项 $2\pi\alpha f_cT_s$ 在不同符号与不同跳上均为常数；第二项 $2\pi\alpha f_kT_s$ 在不同符号上保持一致，但随不同跳（不同 $f_k$）变化。因此，跨符号差分处理后，相关峰相位**仅与跳索引 $k$ 有关**。
+
+为了利用导频信号的每一个跳，需要在跨跳累加前对第二项 $2\pi\alpha f_kT_s$ 进行**相位预补偿**。由式 (7) 可得多普勒估计落在离散网格上，因此预补偿相位可写为：
+
+$$
+\theta_{k,\mathrm{pre}}
+=
+\frac{2\pi m_0}{2(f_c+f_k)}\cdot\frac{T_s}{T_h}\,f_k
+=
+\frac{2\pi m_0Kf_k}{2(f_c+f_k)}.
+\tag{17}
+$$
+
+据此，采用本文所提差分相干策略时，沿 $d$ 与 $k$ 两个维度累加后的统计量为：
+
+$$
+Y=\sum_{k=1}^{K}\left[\sum_{d=1}^{D}\left(A_{d+1,k}\cdot A_{d,k}^*\right)\right]e^{-j\theta_{k,\mathrm{pre}}}.
+\tag{18}
+$$
+
+类似地，所有相关累加结果可用矩阵形式表达为：
+
+$$
+\mathbf Y
+=
+\sum_{k=1}^{K}\left[\sum_{d=1}^{D}\left(A_{d+1,k}\odot A_{d,k}^*\right)\right]e^{-j\theta_{k,\mathrm{pre}}},
+\qquad
+\mathbf Y\in\mathbb C^{2L\times M},
+\tag{19}
+$$
+
+其中 $\odot$ 表示矩阵的 Hadamard（逐元素）乘积。
+
+---
+
+### 4）Step 4（门限检测 Signal Detection by Threshold Test）
+
+本文采用平方律检波器（square-law detector）与单驻留（single-dwell）判决完成检测。令 $\mathbf Y$ 的第 $(n,m)$ 个元素为 $Y[n,m]$，其同相/正交分量分别为：
+
+$$
+\begin{cases}
+y_I[n,m]=\Re\{Y[n,m]\},\\
+y_Q[n,m]=\Im\{Y[n,m]\}.
+\end{cases}
+\tag{20}
+$$
+
+对矩阵 $\mathbf Y$ 的每个元素计算平方幅度，得到非负矩阵 $\mathbf Z\in\mathbb R^{2L\times M}$，其元素为：
+
+$$
+z[n,m]=y_I^2[n,m]+y_Q^2[n,m].
+\tag{21}
+$$
+
+在矩阵 $\mathbf Z$ 中搜索最大值：
+
+$$
+z[n_0,m_0]=\arg\max_{n,m} z[n,m].
+$$
+
+若最大值 $z[n_0,m_0]$ 超过预设门限，则认为捕获成功，并根据最大值对应的坐标 $(n_0,m_0)$ 给出时延与多普勒因子估计：
+
+$$
+\begin{cases}
+\hat{\tau}=\dfrac{T_c}{2}\,n_0,\\[8pt]
+\hat{\alpha}=\dfrac{m_0}{2(f_c+f_k)T_h}.
+\end{cases}
+\tag{22}
+$$
+
+否则捕获失败，重复上述步骤继续搜索。
+
+---
+
+# IV. 捕获性能分析（ACQUISITION PERFORMANCE ANALYSIS）
+
+本节首先分析差分相干累加结果的统计特性；随后推导检测概率 $P_d$ 与虚警概率 $P_{fa}$ 的理论表达式；进一步研究时延与多普勒因子的均方误差（MSE）；最后分析本文方法与已有方法的计算复杂度。
+
+---
+
+## A. 差分相干累加结果的统计特性（Statistical Characteristics of the Differential Coherent Accumulation Results）
+
+本节分析包含噪声时差分相干累加结果的统计特性。根据式 (6)，在 AWGN 信道下，采样率取
+
+$$
+T_{\mathrm{samp}}=\frac{T_c}{2},
+$$
+
+则采样后的复基带波形可表示为：
+
+$$
+\tilde r(iT_{\mathrm{smp}})
+=
+L_p\tilde C_k(iT_{\mathrm{smp}}-\tau)\,
+e^{j2\pi\alpha(f_c+f_k)iT_{\mathrm{smp}}}\,
+e^{j\theta_{d,k}}
++
+W(iT_{\mathrm{smp}}).
+\tag{23}
+$$
+
+假设多普勒对扩频码的影响可忽略，该假设等价于近似
+
+$$
+\tilde C_k(iT_{\mathrm{smp}}-\tau_{d,k})\approx \tilde C_k(iT_{\mathrm{smp}}-\tau).
+$$
+
+并且 $W(iT_{\mathrm{smp}})$ 为均值为 0、方差为 $\sigma_n^2$ 的高斯随机变量。
+
+利用 FFT 实现的相关与多普勒搜索过程可写为：
+
+$$
+a_{d,k}^{m}(n)
+=
+\frac{1}{2L}\,\mathrm{IFFT}\left\{\mathrm{shift}\left(\mathrm{FFT}\big[\tilde r(iT_{\mathrm{smp}})\big]\right)*c_k\right\},
+\tag{24}
+$$
+
+其中 $m=0,1,\ldots,M-1$，$n=0,1,\ldots,2L-1$。
+
+根据环形相关（circumferential correlation）理论，引入符号 $R(\cdot)$ 表示输入 PN 码与接收机本地 PN 码之间相关结果的均值。于是 $a_{d,k}^m(n)$ 可改写为：
+
+$$
+a_{d,k}^{m}(n)
+=
+L_pR(\Delta\tau_n)e^{j\theta_{k,n,m}}\mathrm{sinc}(\Delta f_{m,k})
++
+W_1(k,n,m),
+\tag{25}
+$$
+
+其中 $\theta_{k,n,m}$ 表示复相关输出的相位，$W_1(k,n,m)$ 为相关输出中的噪声项，并且
+
+$$
+\Delta\tau_n=nT_{\mathrm{smp}}-\tau,\qquad
+\Delta f_{m,k}=\frac{m}{2}-(f_c+f_k)T_h\alpha.
+$$
+
+在跨符号累加后，累加结果可表示为：
+
+$$
+\sum_{d=1}^{D}\left\{a_{d+1,k}^{m}(n)\right\}\left\{a_{d,k}^{m}(n)\right\}^{*}
+=
+DL_p^2R^2(\Delta\tau_n)e^{j\theta_k}\mathrm{sinc}^2(\Delta f_{m,k})
++
+W_2(k,n,m),
+\tag{26}
+$$
+
+其中
+
+$$
+\theta_k=2\pi\alpha(f_c+f_k)T_s,
+$$
+
+$W_2(k,n,m)$ 为噪声项。
+
+进一步经过跨跳相位补偿与跨跳累加后，最终累加结果可表示为：
+
+$$
+y[n,m]
+=
+DL_p^2R^2(\Delta\tau_n)\sum_{k=1}^{K}e^{j\theta_k}e^{-j\theta_{k,\mathrm{pre}}}\mathrm{sinc}^2(\Delta f_{m,k})
++
+W_3(n,m),
+\tag{27}
+$$
+
+其中 $W_3(n,m)$ 为噪声项。根据文献 [33]，其方差为：
+
+$$
+\mathrm{var}[W_3(n,m)]
+=
+KD\left[
+\frac{\sigma_n^2}{2L}+L_p^2G(\Delta\tau_n)\mathrm{sinc}^2(\Delta f_{m,k})
+\right]^2
++
+2KDL_p^2R^2(\Delta\tau_n)\left[
+\frac{\sigma_n^2}{2L}+L_p^2G(\Delta\tau_n)\mathrm{sinc}^2(\Delta f_{m,k})
+\right].
+\tag{28}
+$$
+
+其中 $G(\Delta\tau_n)$ 表示输入 PN 码与本地 PN 码之间相关结果的方差（见文献 [32]），可写为：
+
+$$
+G(\Delta\tau_n)=
+\begin{cases}
+|\Delta\tau_n|^2/(2L), & |\Delta\tau_n|\le T_{\mathrm{smp}},\\[6pt]
+\big(1-2|\Delta\tau_n|+2|\Delta\tau_n|^2\big)/(2L), & |\Delta\tau_n|>T_{\mathrm{smp}}.
+\end{cases}
+\tag{29}
+$$
+
+---
+
+## B. 虚警概率与检测概率分析（Analysis of False Alarm and Detection Probabilities）
+
+由于输入噪声为均值为 0、方差为 $\sigma_n^2$ 的 AWGN，且由中心极限定理，式 (27) 中噪声项近似服从高斯分布。令假设 $H_0$ 表示信号不存在，则在 $H_0$ 下 $y_I[n,m]$ 与 $y_Q[n,m]$ 的均值与方差为：
+
+$$
+\begin{cases}
+\mu_0[y_I]=0,\\
+\mu_0[y_Q]=0,\\
+\sigma_0^2[y_I]=\sigma_0^2[y_Q]=\dfrac{1}{2}\sigma_0^2[y]
+=\dfrac{KD}{2}\left(\dfrac{\sigma_n^2}{2L}\right)^2.
+\end{cases}
+\tag{30}
+$$
+
+类似地，令假设 $H_1$ 表示信号存在，则在 $H_1$ 下 $y_I[n,m]$ 与 $y_Q[n,m]$ 的均值与方差为：
+
+$$
+\begin{cases}
+\mu_1[y_I]=DL_p^2R^2(\Delta\tau_n)\sum_{k=1}^{K}\mathrm{sinc}^2(\Delta f_{m,k})\sin(\Delta\theta_k),\\[6pt]
+\mu_1[y_Q]=DL_p^2R^2(\Delta\tau_n)\sum_{k=1}^{K}\mathrm{sinc}^2(\Delta f_{m,k})\cos(\Delta\theta_k),\\[6pt]
+\sigma_1^2[y_I]=\sigma_1^2[y_Q]=\dfrac{1}{2}\sigma_1^2[y]
+=\dfrac{1}{2}KDQ_1^2
++\dfrac{1}{2}KD\left[2L_p^2R^2(\Delta\tau_n)\mathrm{sinc}^2(\Delta f_{m,k})\right]Q_1,
+\end{cases}
+\tag{31}
+$$
+
+其中
+
+$$
+Q_1=\left[\frac{\sigma_n^2}{2L}+L_p^2G(\Delta\tau_n)\mathrm{sinc}^2(\Delta f_{m,k})\right],\qquad
+\Delta\theta_k=\theta_k-\theta_{k,\mathrm{pre}},\qquad
+G(\Delta\tau_n)=\left[\frac{1}{2L}\right]\varepsilon^2.
+$$
+
+---
+
+### 1）时延与多普勒因子的网格搜索（Grid Search for Delay and Doppler Factor）
+
+由式 (27) 可知，相关结果是离散的，因为 $n$ 与 $m$ 为整数。图 7 中点 $O$ 表示真实相关峰，由于量化误差，离散网格上的最高点位置可能偏离理想最高点，从而降低相关峰高度。真实的时延与多普勒因子可改写为：
+
+$$
+\begin{cases}
+\tau=(n_0+\varepsilon)T_{\mathrm{smp}},\\[6pt]
+\alpha=(m_0+\rho)\dfrac{R_h}{2(f_c+f_k)}.
+\end{cases}
+\tag{32}
+$$
+
+其中 $0\le\varepsilon\le 0.5$ 且 $0\le\rho\le 0.5$，分别可视为时延与多普勒因子的量化误差系数。
+
+在相关结果中，由于搜索分辨率与相关结果之间的关系，共有 16 个点可作为相关峰候选点。图 7 中点 $O$ 为真实相关峰，距离真实值最近的四个离散点 $A(n_0,m_0)$、$B(n_0,m_0+1)$、$C(n_0+1,m_0)$、$D(n_0+1,m_0+1)$ 可视为正确估计位置。在后续分析中，我们研究检测概率与从 $A,B,C,D$ 到真实位置 $O$ 的欧氏距离之间的关系。
+
+---
+
+### 图 7（占位）
+> **图 7**：时延与多普勒因子的网格搜索示意图（Diagram of the grid search for delay and Doppler factor）。  
+> $O$ 为真实峰；$A,B,C,D$ 为最近的四个离散候选点；$\varepsilon,\rho$ 表示量化误差系数。
+
+---
+
+### 2）自适应门限的统计特性（Statistical Characteristics of the Adaptive Threshold）
+
+本文中自适应门限通常通过“固定门限系数 $\gamma$ 乘以输入噪声均值”获得。自适应门限 $v$ 定义为：
+
+$$
+v=\frac{\gamma}{2LM-16}\sum_{n=4}^{2L-1}\sum_{m=4}^{M-1}z[n,m].
+\tag{33}
+$$
+
+其中 $\{z[n,m]\mid n=0,1,2,3;\,m=0,1,2,3\}$ 是相关结果中的相关峰候选点。自适应门限 $v$ 服从自由度为 $2(2LM-16)$ 的中心卡方分布。
+
+---
+
+### 3）虚警概率（Probability of False Alarm）
+
+在假设 $H_0$ 下，平方律检波输出 $z[n,m]$ 服从自由度为 2 的中心卡方分布（$\chi^2$）。根据文献 [37]，其概率密度函数（PDF）为：
+
+$$
+p[z[n,m]\mid H_0]=\frac{1}{2\sigma_0^2}e^{-\frac{z[n,m]}{2\sigma_0^2}}.
+\tag{34}
+$$
+
+因此虚警概率可写为：
+
+$$
+\begin{aligned}
+P_{fa}
+&=P\left[\max_{n,m}z[n,m]>v;\,H_0\right]\\
+&=1-\left\{P[z[n,m]<v;\,H_0]\right\}^{2LM}\\
+&=1-\left\{P\left[\frac{z[n,m]}{v}<\gamma;\,H_0\right]\right\}^{2LM}\\
+&=1-\left[F(\gamma;H_0)\right]^{2LM},
+\end{aligned}
+\tag{35}
+$$
+
+其中 $F(\gamma;H_0)$ 为 $z[n,m]/v$ 在 $H_0$ 下的累积分布函数。
+
+---
+
+### 4）检测概率（Probability of Detection）
+
+在假设 $H_1$ 下，相关峰候选点 $\{z[n,m]\mid n=0,1,2,3;\,m=0,1,2,3\}$ 服从自由度为 2 的非中心卡方分布，其非中心参数为：
+
+$$
+\lambda_{n,m}=\left|DB^2R^2(\Delta\tau_n)\sum_{k=1}^{K}e^{j\Delta\theta_k}\mathrm{sinc}^2(\Delta f_{m,k})\right|^2.
+$$
+
+根据文献 [35]，其 PDF 可表示为：
+
+$$
+p[z[n,m]\mid H_1]
+=
+\frac{1}{2\sigma_1^2}
+e^{-\frac{z[n,m]+\lambda_{n,m}}{2\sigma_1^2}}
+I_0\left[\frac{\sqrt{\lambda_{n,m}z[n,m]}}{\sigma_1^2}\right],
+\tag{36}
+$$
+
+其中 $I_0[\cdot]$ 为零阶修正贝塞尔函数。并且 $\{z[n,m]\mid n=4,\ldots,2L-1;\,m=4,\ldots,M-1\}$ 仍服从自由度为 2 的中心卡方分布，其 PDF 与式 (34) 相同。
+
+不失一般性，假设 $(0,0)$、$(0,1)$、$(1,0)$、$(1,1)$ 为正确估计位置。检测概率等于如下四个事件发生概率之和：
+
+1）$\max_{n,m}z[n,m]=z[0,0]$ 且 $z[0,0]>v$；  
+2）$\max_{n,m}z[n,m]=z[0,1]$ 且 $z[0,1]>v$；  
+3）$\max_{n,m}z[n,m]=z[1,0]$ 且 $z[1,0]>v$；  
+4）$\max_{n,m}z[n,m]=z[1,1]$ 且 $z[1,1]>v$。
+
+根据文献 [36]、[37]，第 1–4 项对应概率可写为：
+
+$$
+\begin{aligned}
+P_{n,m}
+&=\int_{0}^{+\infty} p[z[n,m]\mid H_1]\,F_v(z[n,m]\mid H_1)\\
+&\quad\times\prod_{i=0,i\ne n}^{2L-1}\prod_{j=0,j\ne m}^{M-1}
+F_{z[i,j]}(z[n,m]\mid H_1)\,dz[n,m],
+\end{aligned}
+\tag{37}
+$$
+
+其中 $F_v(x;H_1)$ 与 $F_{z[i,j]}(x;H_1)$ 分别表示在 $H_1$ 下门限 $v$ 与随机变量 $z[i,j]$ 的累积分布函数。
+
+因此，检测概率为：
+
+$$
+P_d=P_{0,0}+P_{0,1}+P_{1,0}+P_{1,1}.
+\tag{38}
+$$
+
+由式 (32) 可知四个正确估计位置对应的量化误差系数分别为 $(\varepsilon,\rho)$、$(1-\varepsilon,\rho)$、$(\varepsilon,1-\rho)$、$(1-\varepsilon,1-\rho)$，于是检测概率可改写为：
+
+$$
+\begin{aligned}
+P_d(\varepsilon,\rho)
+&=P_{1,1}(\varepsilon,\rho)+P_{1,2}(\varepsilon,1-\rho)\\
+&\quad+P_{2,1}(1-\varepsilon,\rho)+P_{2,2}(1-\varepsilon,1-\rho).
+\end{aligned}
+\tag{39}
+$$
+
+不失一般性，假设 $\varepsilon$ 与 $\rho$ 服从均匀分布，即 $\varepsilon\sim\mathcal U(0,0.5)$ 且 $\rho\sim\mathcal U(0,0.5)$。则无条件检测概率为：
+
+$$
+\bar P_d=\int_{0}^{0.5}\int_{0}^{0.5}p_\varepsilon\cdot p_\rho\cdot P_d(\varepsilon,\rho)\,d\varepsilon\,d\rho,
+\tag{40}
+$$
+
+其中 $p_\varepsilon$ 为时延量化误差系数取 $\varepsilon$ 的概率，$p_\rho$ 为多普勒量化误差系数取 $\rho$ 的概率。
+
+---
+
+## C. 时延与多普勒因子的均方误差（Mean Square Error of Delay and Doppler Factor）
+
+基于上述分析，当捕获成功时，时延（以 $T_c^2/4$ 归一化）与多普勒因子（以 $1/4$ 归一化）的 MSE 可表示为：
+
+$$
+\begin{cases}
+\mathrm{MSE}(\hat{\tau})
+=\dfrac{1}{P_d}\Big[\varepsilon^2(P_{0,0}+P_{0,1})+(1-\varepsilon)^2(P_{1,0}+P_{1,1})\Big],\\[10pt]
+\mathrm{MSE}(\hat{\alpha})
+=\dfrac{1}{P_d}\Big[\rho^2(P_{0,0}+P_{0,1})+(1-\rho)^2(P_{1,0}+P_{1,1})\Big].
+\end{cases}
+\tag{41}
+$$
+
+由于检测概率 $P_d$ 是 $(\varepsilon,\rho)$ 的函数，为分析当 $\varepsilon$ 与 $\rho$ 同时随机变化时的估计性能，本文进一步给出了“从正确估计位置集合 $\{(0,0),(1,0),(0,1),(1,1)\}$ 到实际位置 $(\varepsilon,\rho)$ 的欧氏距离”的 MSE。为简化，称其为时延与多普勒因子的**共同 MSE**：
+
+$$
+\begin{aligned}
+\mathrm{MSE}(\hat{\tau},\hat{\alpha})
+&=(\varepsilon^2+\rho^2)\frac{P_{1,1}}{P_d}
++\Big[\varepsilon^2+(1-\rho)^2\Big]\frac{P_{1,2}}{P_d}\\
+&\quad+\Big[(1-\varepsilon)^2+\rho^2\Big]\frac{P_{2,1}}{P_d}
++\Big[(1-\varepsilon)^2+(1-\rho)^2\Big]\frac{P_{2,2}}{P_d}.
+\end{aligned}
+\tag{42}
+$$
+
+进一步，无条件共同 MSE 可表示为：
+
+$$
+\overline{\mathrm{MSE}}(\hat{\tau},\hat{\alpha})
+=
+\frac{1}{\bar P_d}\int_{0}^{0.5}\int_{0}^{0.5}p_\varepsilon\cdot p_\rho\cdot M\,d\varepsilon\,d\rho,
+\tag{43}
+$$
+
+其中
+
+$$
+M=(\varepsilon^2+\rho^2)P_{1,1}+\Big[\varepsilon^2+(1-\rho)^2\Big]P_{1,2}
++\Big[(1-\varepsilon)^2+\rho^2\Big]P_{2,1}
++\Big[(1-\varepsilon)^2+(1-\rho)^2\Big]P_{2,2}.
+$$
+
+---
+
+## D. 复杂度分析（Complexity Analysis）
+
+本节分析本文提出的差分相干捕获方法、已有的非相干累加方法与相干累加方法的复杂度。由于三种策略在前期都需要下变频与滤波，本文不计入这部分复杂度。实际计算中复乘法比复加法消耗更多资源，因此本文仅统计复乘法次数作为计算复杂度指标。
+
+表 I 给出了三种捕获算法的计算复杂度对比：相干累加复杂度最大，非相干累加复杂度最低；本文提出的方法复杂度低于相干累加，且仅略高于非相干累加。
+
+---
+
+### 表 I（原文 Table I）：捕获算法计算复杂度对比（Computational Complexity Comparison）
+
+| 方案（Schemes） | 计算开销（Computational Cost） |
+|---|---|
+| Coherent（相干累加） | $(M+2)2^{N+1}DKG L\log_2(2GL) + GLM2^{N+1}K(KD+1)$ |
+| Proposed（本文方法） | $(M+2)DK\,2L\log_2(4L) + (D+1)2LKM + 4LKM$ |
+| Noncoherent（非相干累加） | $(M+2)DK\,2L\log_2(4L) + D^2LKM$ |
+
+---
+
+### 图 8（占位）
+> **图 8**：三种捕获方法计算复杂度随 $L,K,G,M,D,N$ 变化的曲线（Computational complexity of three different acquisition methods versus $L,K,G,M,D,N$）。  
+> 原文结论：随 $L,K,G,M,D,N$ 增大，相干累加复杂度增长最快；本文方法介于相干与非相干之间，但更接近非相干。
+
+# 面向低轨卫星增强物联网的差分相干 FFH/DS 捕获新策略（中文完整翻译 · 第3部分：V–VI章 + 参考文献 + 作者简介）
+
+---
+
+# V. 数值分析（NUMERICAL ANALYSIS）
+
+## A. 仿真设置（Simulation Settings）
+
+本节通过理论计算与计算机仿真，研究所提方法的**检测概率**、**虚警概率**以及**时延与多普勒因子的共同均方误差（common MSE）**。同时，为对比起见，给出已有**相干累加**与**非相干累加**策略的检测概率。除此之外，本文还将用于 DSSS 系统的传统差分捕获方法（见文献 [30]）应用到 FFH/DS 系统中，并与本文所提方法的捕获性能进行比较。
+
+对检测概率与 MSE 的仿真采用**恒虚警检测（Constant False Alarm Detection）**，设定 $P_{fa}=0.01$。表 II 给出了仿真参数设置。
+
+---
+
+### 表 II（原文 Table II）：仿真参数（Simulation Parameters）
+
+| 参数（Parameter） | 取值（Value） |
+|---|---:|
+| DS 处理增益 $L$（DS Processing Gain） | 64 |
+| 频率 bin 数 $K$（Frequency bins number） | 8 |
+| 多普勒系数搜索范围 $M$（Doppler coefficient search range） | 9 |
+| 快跳驻留时长 $T_h$（FFH hopping duration） | $10^{-5}$ s |
+| 相干捕获时延搜索单元数 $G$（Number of coherent acquisition delay search cell） | 10 |
+| 相干捕获频偏搜索单元数 $N$（Number of coherent acquisition frequency offset search cell） | 5 |
+
+---
+
+## B. 虚警概率（False Alarm Probability）
+
+所提方法的虚警概率 $P_{fa}$ 随门限系数 $\gamma$ 的变化关系如图 9 所示，门限系数 $\gamma$ 在 8 到 15 之间变化。并且，为便于比较，图中还给出了不同累加符号数 $D=\{32,64,128\}$ 时的虚警概率曲线。
+
+从图 9 可以看到：随着门限系数 $\gamma$ 增大，虚警概率逐渐减小；并且随着 $D$ 增大，仿真结果逐渐逼近理论结果，这是由于中心极限定理使得统计量的高斯近似更准确。
+
+---
+
+### 图 9（占位）
+> **图 9**：所提方法的虚警概率随门限系数 $\gamma$ 的变化曲线，给出不同符号数 $D=\{32,64,128\}$ 的结果。
+
+---
+
+## C. 检测概率（Detection Probability）
+
+所提差分相干累加捕获方法的检测概率关于载噪比（CNR）与符号数 $D$ 的关系如图 10 所示。由图 10 可见：检测概率随 $D$ 与 CNR 的增大而提高，并且仿真结果与理论结果吻合良好。
+
+进一步地，图 11 给出了所提方法在不同量化误差系数 $(\varepsilon,\rho)$ 下的检测概率，包括 $(0,0)$、$(0.5,0)$、$(0,0.5)$、$(0.5,0.5)$，以及随机量化误差（满足均匀分布）：
+$$
+\varepsilon\sim\mathcal U(0,0.5),\quad \rho\sim\mathcal U(0,0.5).
+$$
+从图 11 可见：随着量化误差系数增大，检测概率下降；当 $(\varepsilon,\rho)=(0,0)$ 时性能最好；当量化误差达到最大时性能最差；当量化误差在最小与最大之间随机分布时，性能处于中间水平。
+
+图 12 展示了所提方法在不同跳数 $K$ 下的检测概率。此处固定 $D=32$，并固定虚警概率 $P_{fa}=0.01$；跳数设置为 $K=\{4,8,16\}$。由图 12 可见：随着 $K$ 增大，捕获性能得到提升。
+
+---
+
+### 图 10（占位）
+> **图 10**：差分相干累加方法的检测概率随 CNR 的变化曲线，符号数 $D=\{32,64,128\}$，且固定 $(\varepsilon,\rho)=(0,0)$。
+
+### 图 11（占位）
+> **图 11**：差分相干方法的检测概率随 CNR 的变化曲线，不同的时延与多普勒量化误差系数；假设 $D=32$。
+
+### 图 12（占位）
+> **图 12**：差分相干方法的检测概率随 CNR 的变化曲线：跳数 $K=\{4,8,16\}$；PN 码长度 $L=\{128,64,32\}$；固定 $(\varepsilon,\rho)=(0,0)$。
+
+---
+
+## D. 时延与多普勒因子的共同 MSE（Common MSE of the Delay and Doppler Factor）
+
+时延与多普勒因子的共同 MSE（common MSE）关于 CNR 与累加符号数的结果如图 13 与图 14 所示。此处量化误差系数从均匀分布中抽样：
+$$
+\varepsilon\sim\mathcal U(0,0.5),\quad \rho\sim\mathcal U(0,0.5),
+$$
+并令 $D\in\{64,128,256\}$。
+
+在工程应用中，接收机只能依据“相关峰是否超过门限”作出判断，而无法知道当前判决是否正确，因此会出现**错误捕获**。图 13 展示了工程意义下（可能存在错误捕获）时延与多普勒因子的共同 MSE：当 CNR 较低时，错误捕获概率较高，导致 MSE 较大；随着 CNR 增大，错误捕获概率下降，MSE 随之减小；当错误捕获概率趋近于 0 时，MSE 会趋于一个固定值。
+
+在“捕获成功”的前提下，图 14 给出了共同 MSE 随 CNR 与符号数变化的曲线。由图 14 可见：MSE 是关于 CNR 的凸函数；随着 CNR 增大，所提方法的 MSE 起初逐渐增大，随后上升到最大值后逐渐下降，并最终稳定到某个固定值。仿真结果与理论结果吻合良好。
+
+---
+
+### 图 13（占位）
+> **图 13**：当捕获成功时，共同 MSE 随 CNR 的变化曲线；$\varepsilon,\rho$ 均从 $\mathcal U(0,0.5)$ 抽样；符号数 $D=\{64,128,256\}$。
+
+### 图 14（占位）
+> **图 14**：当“相关峰超过门限”时（工程判决意义），共同 MSE 随 CNR 的变化曲线；$\varepsilon,\rho$ 均从 $\mathcal U(0,0.5)$ 抽样；符号数 $D=\{64,128,256\}$。
+
+---
+
+## E. 差分相干、非相干与相干捕获策略对比（Comparison of Differential Coherent, Noncoherent, and Coherent Acquisition Strategy）
+
+三种捕获方法（差分相干、相干累加、非相干累加）的检测概率对比如图 15 所示，符号数取 $D=\{32,64,128\}$，并固定 $(\varepsilon,\rho)=(0,0)$。三种方法在不同符号数下的计算复杂度对比如表 III 所示。
+
+可以看到：由于相干累加捕获方法可视为最大似然估计器，因此其检测概率最好；非相干累加性能最差；本文提出的差分相干累加方法性能介于二者之间。当符号数为 $D=64$ 时，为达到 99% 检测概率，本文方法所需 CNR 比非相干累加方法低 **1.6 dB**；此时本文方法的计算复杂度仅增加约 **0.43%**。
+
+图 16 给出了在不同量化误差系数 $(\varepsilon,\rho)$（取 $(0,0)$、$(0,0.5)$、$(0.5,0)$、$(0.5,0.5)$）条件下，三种方法的检测概率对比。由图 16 可见：三种方法之间的性能差距在不同的时延与多普勒量化误差下保持一致。
+
+---
+
+### 表 III（原文 Table III）：三种方法计算开销对比（Computational Cost）
+
+| 方法（Schemes） | $D=32$ | $D=64$ | $D=128$ |
+|---|---:|---:|---:|
+| Coherent（相干累加） | 1285306348 | 2570244056 | 5140119472 |
+| Proposed（本文方法） | 3206144 | 6384640 | 12741632 |
+| Noncoherent（非相干累加） | 3178496 | 6356992 | 12713984 |
+
+---
+
+### 图 15（占位）
+> **图 15**：三种捕获方法的检测概率随 CNR 的变化曲线：符号数 $D=\{32,64,128\}$；固定 $(\varepsilon,\rho)=(0,0)$。
+
+### 图 16（占位）
+> **图 16**：三种捕获方法的检测概率随 CNR 的变化曲线：不同量化误差系数（时延/多普勒）；固定符号数 $D=32$。
+
+---
+
+## F. 与传统差分方法对比（Comparison Between the Proposed Differential Method and the Traditional Differential Method）
+
+图 17 给出了 FFH/DS 系统中：本文所提方法与传统差分方法（原用于 DSSS 系统 [30]）的检测概率对比，符号数取 $D=\{32,64,128\}$。
+
+由图 17 可见：随着符号数 $D$ 与 CNR 的增大，两种方法的检测概率均提升；并且，本文提出的 FFH/DS 差分方法性能优于将 DSSS 传统差分方法直接套用到 FFH/DS 的情形。
+
+---
+
+### 图 17（占位）
+> **图 17**：本文方法（FFH/DS）与传统方法的检测概率随 CNR 的变化曲线：符号数 $D=\{32,64,128\}$。
+
+---
+
+# VI. 结论（CONCLUSION）
+
+本文建立了包含传播时延与多普勒效应的现实 FFH/DS 系统模型及其捕获结构。在此基础上，提出了一种面向 LEO 卫星增强 IoT 的低复杂度差分相干 FFH/DS 捕获策略。该方法利用差分相干累加与跨跳预补偿实现高性能捕获，从而在标定（校准）复杂度与捕获性能之间取得折中。
+
+为评估所提算法的性能，本文在 AWGN 信道下推导并仿真了虚警概率、检测概率以及时延与多普勒因子的均方误差（MSE），并对算法计算复杂度进行了分析。与已有捕获策略相比，所提方案在复杂度仅增加约 **0.43%** 的代价下，相对于非相干策略带来约 **1.6 dB** 的性能提升。
+
+---
+
+# 参考文献（REFERENCES）
+
+> 说明：参考文献按原文格式保留（通常不翻译标题与期刊名）。
+
+[1] J. A. Stankovic, “Research directions for the Internet of Things,” *IEEE Internet Things J.*, vol. 1, no. 1, pp. 3–9, Feb. 2014.  
+[2] A. Zanella, N. Bui, A. Castellani, L. Vangelista, and M. Zorzi, “Internet of Things for smart cities,” *IEEE Internet Things J.*, vol. 1, no. 1, pp. 22–32, Feb. 2014.  
+[3] M. De Sanctis, E. Cianca, G. Araniti, I. Bisio, and R. Prasad, “Satellite communications supporting Internet of Remote Things,” *IEEE Internet Things J.*, vol. 3, no. 1, pp. 113–123, Feb. 2016.  
+[4] Z. Qu, G. Zhang, H. Cao, and J. Xie, “LEO satellite constellation for Internet of Things,” *IEEE Access*, vol. 5, pp. 18391–18401, 2017.  
+[5] Y. Wu, G. Hu, F. Jin, and J. Zu, “A satellite handover strategy based on the potential game in LEO satellite networks,” *IEEE Access*, vol. 7, pp. 133641–133652, 2019.  
+[6] L. Zhen, A. K. Bashir, K. Yu, Y. D. Al-Otaibi, C. H. Foh, and P. Xiao, “Energy-efficient random access for LEO satellite-assisted 6G Internet of Remote Things,” *IEEE Internet Things J.*, vol. 8, no. 7, pp. 5114–5128, Apr. 2021.  
+[7] Z. Li, Y. Liu, K. G. Shin, J. Liu, and Z. Yan, “Interference steering to manage interference in IoT,” *IEEE Internet Things J.*, vol. 6, no. 6, pp. 10458–10471, Dec. 2019.  
+[8] S. Liu, J. Lin, L. Xu, X. Gao, L. Li, and L. Jiang, “A dynamic beam shutoff algorithm for LEO multibeam satellite constellation network,” *IEEE Commun. Lett.*, vol. 9, no. 10, pp. 1730–1733, Oct. 2020.  
+[9] C. Popper, M. Strasser, and S. Capkun, “Anti-jamming broadcast communication using uncoordinated spread spectrum techniques,” *IEEE J. Sel. Areas Commun.*, vol. 28, no. 5, pp. 703–715, Jun. 2010.  
+[10] S. Luo, S. Zhang, S. Ke, S. Wang, X. Bu, and J. An, “Optimum combining for coherent FFH/DS spread spectrum receivers in the presence of multi-tone jammer,” *IEEE Access*, vol. 8, pp. 53097–53106, 2020.  
+[11] S.-K. Loh, “Hybrid spread spectrum signal acquisition in the presence of worst case multitone jamming,” in *Proc. MILCOM*, vol. 1. Monterey, CA, USA, 1997, pp. 98–102.  
+[12] M. Majumndar, N. Sandhu, and J. H. Reed, “Adaptive single-user receivers for direct-sequence spread-spectrum CDMA systems,” *IEEE Trans. Veh. Technol.*, vol. 49, no. 2, pp. 379–389, Mar. 2000.  
+[13] C. Alcaide-Guillén, A. Vidal-Pantaleoni, and J.-R. Martín-Romero, “A proof of concept study for a fast acquisition in a LEO satellite GPS receiver,” *J. Navigation*, vol. 65, no. 2, pp. 231–246, 2018.  
+[14] I. Ani, N. Al-Dhahir, and J. E. Hershey, “Predicting the visibility of LEO satellites,” *IEEE Trans. Aerosp. Electron. Syst.*, vol. 35, no. 4, pp. 1183–1190, Oct. 1999.  
+[15] O. Kodheli, S. Andrenacci, N. Maturo, S. Chatzinotas, and F. Zimmer, “An uplink UE group-based scheduling technique for 5G mMTC systems over LEO satellite,” *IEEE Access*, vol. 7, pp. 67413–67427, 2019.  
+[16] E. Meng and X. Bu, “Two-dimensional joint acquisition of Doppler factor and delay for MC-DS-CDMA in LEO satellite system,” *IEEE Access*, vol. 8, pp. 148203–148213, 2020.  
+[17] P. Zhang, X. Huang, J. Li, Z. Liu, and G. Ou, “Acquisition algorithm optimization based on amount of computation and performance joint,” in *Proc. CSNC*, vol. 2, 2022, pp. 638–650.  
+[18] I. Leyva-Mayorga et al., “LEO small-satellite constellations for 5G and beyond-5G communications,” *IEEE Access*, vol. 8, pp. 184955–184964, 2020.  
+[19] P. Yue et al., “Low Earth orbit satellite security and reliability: Issues, solutions, and the road ahead,” 2022, arXiv:2201.03063.  
+[20] S. G. Glisic, T. J. Poutanen, W. W. Wu, G. V. Petrovic, and Z. Stefanovic, “New PN code acquisition scheme for CDMA networks with low signal-to-noise ratios,” *IEEE Trans. Commun.*, vol. 47, no. 2, pp. 300–310, Feb. 1999.  
+[21] A. Chockalingam and G. Bao, “Probability of miss analysis for packet CDMA acquisition on Rician-fading channels,” *IEEE Commun. Lett.*, vol. 2, no. 7, pp. 177–179, Jul. 1998.  
+[22] W. Feng and Z. Desuo, “Cascade connection serial parallel hybrid acquisition synchronization method for DS-FHSS in air–ground data link,” in *Proc. SPIE Int. Soc. Opt. Eng.*, Nov. 2007, Art. no. 67950W.  
+[23] R. Krenz and M. Rodziewicz, “Hybrid DS/FH spread spectrum data transmission system for telemetry,” in *Proc. CSNDSP*, Prague, Czech Republic, 2016, pp. 1–5.  
+[24] W. Yang, S. Meng, J. Wang, and J. Liu, “Acquisition performance analysis of a synchronization scheme of DS/FH hybrid spread spectrum signals for TT&C,” in *Proc. ICEMI*, Beijing, China, 2009, pp. 395–399.  
+[25] G. Zheng, Y. Yao, D. Wang, and J. Tian, “Study of an application of hybrid spread spectrum technology in satellite communication,” in *Proc. CISCE*, Kuala Lumpur, Malaysia, 2020, pp. 49–54.  
+[26] W. Wang, Y. Shen, and Y. Wang, “Keystone transform-based parameter search for wide-band hybrid DS/FH systems,” *IEEE Access*, vol. 7, pp. 108223–108231, 2019.  
+[27] J.-W. Kim, B. Lim, and Y.-C. Ko, “A rapid serial timing acquisition algorithm for hybrid DS/FH packet radio communication,” *IEEE Trans. Aerosp. Electron. Syst.*, vol. 57, no. 2, pp. 1016–1027, Apr. 2021.  
+[28] X. Sun, Y. Liu, and D. Wan, “A parallel acquisition method for DS/FH hybrid spread spectrum signal,” *J. Spacecr. Technol.*, vol. 31, no. 1, pp. 55–59, Feb. 2021.  
+[29] X. Chen, G. Li, Z. Li, and W. Zhu, “Effective acquisition of a phase-coherent DSFH satellite telemetry signal,” in *Proc. CIC/ICCC*, 2015, pp. 88–93.  
+[30] D. Borio, C. O’Driscoll, and G. Lachapelle, “Coherent, noncoherent, and differentially coherent combining techniques for acquisition of new composite GNSS signals,” *IEEE Trans. Aerosp. Electron. Syst.*, vol. 45, no. 3, pp. 1227–1240, Jul. 2009.  
+[31] D. Gómez-Casco, J. A. López-Salcedo, and G. Seco-Granados, “Optimal post-detection integration techniques for the reacquisition of weak GNSS signals,” *IEEE Trans. Aerosp. Electron. Syst.*, vol. 56, no. 3, pp. 2302–2311, Jun. 2020.  
+[32] W. Zhuang and J. Tranquilla, “Modeling and analysis for the GPS pseudo-range observable,” *IEEE Trans. Aerosp. Electron. Syst.*, vol. 31, no. 2, pp. 739–751, Apr. 1995.  
+[33] N. O’Donoghue and J. M. F. Moura, “On the product of independent complex Gaussians,” *IEEE Trans. Signal Process.*, vol. 60, no. 3, pp. 1050–1063, Mar. 2012.  
+[34] J. Smidt, P. A. Roncagliolo, and C. H. Murawczyk, “Statistical characterization of a constant false alarm detector for GNSS signals,” in *Proc. ICL-GNSS*, Tampere, Finland, 2011, pp. 98–103.  
+[35] B. C. Geiger, C. Vogel, and M. Soudan, “Comparison between ratio detection and threshold comparison for GNSS acquisition,” *IEEE Trans. Aerosp. Electron. Syst.*, vol. 48, no. 2, pp. 1772–1779, Apr. 2012.  
+[36] D. Borio, L. Camoriano, and L. Lo Presti, “Impact of GPS acquisition strategy on decision probabilities,” *IEEE Trans. Aerosp. Electron. Syst.*, vol. 44, no. 3, pp. 996–1011, Jul. 2008.  
+[37] S. M. Kay, *Fundamentals of Statistical Signal Processing, Volume I: Estimation Theory*. Englewood Cliffs, NJ, USA: Prentice-Hall, 1993.  
+[38] X. Fu, “Research on acquisition and analysis method of broadband frequency hopping signal,” *Wireless Internet Technol.*, vol. 16, no. 13, pp. 105–106, Jul. 2019.  
+[39] W. Yan, L. Jinkun, and H. Hangcheng, “Acquisition method of frequency hopping spread spectrum signal based on coherent accumulation,” *J. Comput. Appl.*, vol. 41, no. z2, pp. 187–191, 2021.
+
+---
+
+# 作者简介（AUTHORS’ BIOGRAPHIES）
+
+> 说明：作者简介按原文信息完整翻译，姓名保留英文拼写。
+
+**Xin Jin（金欣）** 于 2017 年在中国北京的北京理工大学信息与电子学院获得学士学位，目前在该校攻读博士学位。其研究方向主要包括扩频信号处理、卫星通信、多无人机网络以及自时间同步等。
+
+**Xuanhe Yang（杨轩和）** 于 2015 年在中国郑州的郑州大学信息工程学院获得学士学位。其研究方向主要包括扩频信号处理、卫星通信、物联网技术以及物理层安全等。
+
+**Shixun Luo（罗士荀）** 于 2013 年与 2020 年在中国北京的北京理工大学信息与电子学院分别获得通信工程学士与博士学位。自 2020 年 10 月起，她在北京理工大学网络空间安全学院工作，现任研究工程师。其研究兴趣包括卫星通信、无人机网络以及物理层安全，尤其关注扩频信号处理。
+
+**Shuai Wang（王帅，IEEE 高级会员）** 于 2012 年在北京理工大学获得通信系统博士学位。毕业后加入北京理工大学信息与电子学院任教；2021 年转入新成立的网络空间安全学院，担任信息安全与对抗系讲席教授。他已发表 40 余篇同行评审论文（主要发表于 IEEE 顶级期刊或会议），并拥有 60 余项专利。其研究兴趣包括卫星通信、抗干扰通信以及空间数据链相关技术等。王帅博士为 2019 年中国国家技术发明奖二等奖共同获得者，并曾担任 *IEEE Wireless Communications Letters* 编委，现任 *China Communications* 编委。
+
+**Jianping An（安建平，IEEE 高级会员）** 于 1996 年在北京理工大学获得博士学位。现为北京理工大学网络空间安全学院教授、院长。他的研究兴趣包括数字信号处理、认知无线电、无线网络以及高动态宽带无线传输技术等。
+
+---
+
+

@@ -1,0 +1,266 @@
+# 21世纪战术数据链（TDL）在军事领域重要性分析（中文翻译）
+
+> 原文题目：ANALYSIS OF IMPORTANCE OF TACTICAL DATA LINK (TDL) IN MILITARY DOMAINS IN 21ST CENTURY  
+> 作者：Hossain KA, PhD  
+> 期刊：Scientific Research Journal (SCIRJ), Volume XI, Issue VIII, August 2023  
+> ISSN：2201-2796  
+> DOI：10.31364/SCIRJ/v11.i8.2023.P0823957  
+
+---
+
+## 摘要（中文翻译）
+
+当今的军事规划、决策制定以及指挥与控制（Command and Control）需要处理规模巨大且持续增长的数据。国家安全机构必须提升快速通信与使用海量信息/数据的能力，以增强态势感知并支撑日益复杂的军事行动。此外，这些信息/数据往往来自地理位置分散的设备。
+
+战术数据链（Tactical Data Link, TDL）依据特定规范建立，用于在军事交战中实现更复杂的数据交换。军事操作者通常使用 TDL 来传递关键信息，这些信息经过优化以满足配备 TDL 的平台及其信息交换需求（Information Exchange Requirements, IERs）的任务目标。通过多链路（multi-link）运行，互联的作战单元与系统数量会显著增加，从而使联合数据网络（Joint Data Network, JDN）复杂度上升，必须进行细致的网络规划与管理。
+
+Link 16 与 Link 22 是较新且更先进的战术数据链网络。第二代数据链的提出是为了解决第一代数据链的不足。例如，Link 22 设计用于替代 Link 11，并支持超视距（Beyond Line of Sight, BLOS）通信，面向更互联的环境，与 Link 16 互补并增强 C5ISR 能力。
+
+本文是一篇分析性论文，讨论 TDL 在军事领域的重要性，并对 21 世纪其在战场空间与商业领域的广泛使用及未来增长做出预测。
+
+---
+
+## 关键词（中文翻译）
+
+处理（Processing）；集成（Integration）；系统架构（System Architect）；射频（RF）；TDL；JADO；C5ISR；SDR
+
+---
+
+## 1 引言（Introduction）
+
+指挥与控制（C2）对现代军事行动（无论军种单独行动还是联合作战环境）至关重要。指挥员希望持续掌握诸如“敌人在何处？”“敌方计划是什么？”“敌方舰艇在哪里？”“敌方攻击机在哪里？”“对手的潜艇在哪里？”等问题的答案。为了在战场上形成并维持可靠的态势感知，必须依赖安全、可靠、稳定的信息交换与通信体系。
+
+现代防务系统的发展推动了信息系统与网络的快速演进。传感器（雷达、导航系统、电光/红外传感器等）产生大量实时数据，这些数据必须被快速处理、融合并分发给需要它们的作战单元。战术层面的信息交换越来越多依赖计算机网络与数据链系统，这些系统具备改变作战与解决问题方式的潜力。
+
+近年来，“Command, Control, Communications, Computers, Combat Systems, Intelligence, Surveillance and Reconnaissance（C5ISR）”成为常用术语。通过安全可靠的通信链路共享信息，是支撑决策流程（Decision-Making Process, DMP）的关键。战术数据链（TDL）系统因此成为必要能力。
+
+TDL 是一种通信标准，采用多个数据通道，用于武装力量之间战术数据的传输、交换与处理。它为军事通信提供了安全网络。常见的战术网络示例包括：IDM、Link 11、AFAPD、Link 16、Link 22、SADL、JREAP、VMF、SIMPLE 等。具体选用何种网络，取决于应用需求；相关 TDL 多由美国与北约（NATO）推动发展。
+
+例如：Link 16 常用于视距（LOS）通信；SADL 用于形成态势感知；Link 22 常用于超视距（BLOS）通信应用。凭借 TDL 的安全通信能力，军事人员能够在生死攸关的情境中作出更有效决策。该技术也易于与多种军事系统集成，从而提升系统能力。因此，防务产业出现以实时、安全数据链替代传统军事通信系统的趋势，这将推动未来十年 TDL 市场扩张。
+
+同时，新冠疫情导致运输受限、生产设施长期关闭等因素，使 2020—2022 年间增长放缓；但在后疫情时代以及当前全球地缘政治环境下，TDL 市场增长预计将加速。
+
+TDL 系统可按标准消息格式与通信协议实时传输、交换并处理战术数据信息。它使得地理分散但承担相同战术任务的作战单元形成一个“凝聚的战术共同体”。如今，许多系统能够同时工作在多个链路上，以形成更完整的态势图。一些系统被称为 Forwarders 或 Gateways，可在不同数据链之间转发信息。具备数据链连接的作战群体能够在战术共同体中共享情报与武器资源，以实现共同作战目标并提升效能。
+
+战术数据链在军事领域应用日益广泛，可通过作战单元间信息传输快速把握战斗态势、帮助控制整体战局。但在传输过程中通信信道复杂、环境影响显著，数据传输可靠性受到挑战，因此需要从射频、网络与系统架构等方面综合分析其关键技术。
+
+---
+
+## 2 射频（RF）与战术通信基础
+
+### 2.1 电磁频谱与无线电频谱
+
+无线电频率（Radio Frequency, RF）是电磁辐射的一部分。电磁频谱覆盖从极低频到极高频的范围，包含无线电波、微波、红外、可见光、紫外、X 射线与伽马射线等。
+
+电磁波谱中“无线电频谱”所处位置如下图所示：
+
+> **Figure 1**：电磁波谱示意图（标出无线电频谱所在区域）  
+> ![Figure 1](figure1.png)
+
+不同频率与频谱区域适用于不同通信与业务类型，常见术语包括 LF、MF、HF、VHF、UHF、EHF 等，代表无线电频谱的不同区段。
+
+### 2.2 无线电频谱与 ITU 频段划分
+
+无线电频谱与 RF 的关系可参考下图：
+
+> **Figure 2**：无线电频谱与射频（RF）示意  
+> ![Figure 2](figure2.png)
+
+在现代应用中常用频率而非波长表述频段。国际电信联盟（ITU）无线电规则规定了频段划分。最初只有 9 个频段，随着使用与潜在用途扩展，形成了 12 个频段，这些 ITU 频段定义被全球广泛接受并使用。
+
+> **Table 1**：ITU 无线电频段名称、缩写、频段编号、频率与波长（Markdown 转写）
+
+| 频段名称（Band Name） | 缩写（Abbrev.） | ITU 频段编号 | 频率范围（Frequency） | 波长范围（Wavelength） |
+|---|---:|---:|---:|---:|
+| Extremely Low | ELF | 1 | 3 – 30 Hz | 100000 – 10000 km |
+| Super Low | SLF | 2 | 30 – 300 Hz | 10000 – 1000 km |
+| Ultra Low | ULF | 3 | 300 – 3000 Hz | 1000 – 100 km |
+| Very Low | VLF | 4 | 3 – 30 kHz | 100 – 10 km |
+| Low Frequency | LF | 5 | 30 – 300 kHz | 10 – 1 km |
+| Medium | MF | 6 | 300 – 3000 kHz | 1000 – 100 m |
+| High Frequency | HF | 7 | 3 – 30 MHz | 100 – 10 m |
+| Very High | VHF | 8 | 30 – 300 MHz | 10 – 1 m |
+| Ultra High | UHF | 9 | 300 – 3000 MHz | 100 – 10 cm |
+| Super High | SHF | 10 | 3 – 30 GHz | 10 – 1 cm |
+| Extremely High | EHF | 11 | 30 – 300 GHz | 10 – 1 mm |
+| Tremendously | THF | 12 | 300 – 3000 GHz | 1 – 0.1 mm |
+
+### 2.3 RF（射频）基本概念
+
+射频（RF）可以理解为电磁波的振荡速率。RF 既存在于自然界（如闪电、恒星辐射等）也广泛用于人造无线系统。RF 技术是无线通信、雷达、卫星通信以及数据链系统的基础。
+
+> **Figure 3**：RF（射频）无线技术基本示意  
+> ![Figure 3](figure3.png)
+
+### 2.4 战术通信（Tactical Communications）
+
+战术通信本质上是军事通信，强调在复杂、对抗环境中实现可靠的信息传递（语音、文字、图像、音频等）。如今通常通过数字/计算机网络实现，并且可加密、可承载更大数据量，也更便于自动化处理与融合。
+
+战术通信网络可能包含：
+- 更安全但传播距离更短的无线电链路
+- 卫星通信链路（SATCOM）
+- 各类自组网（MANET）
+- 延迟容忍网络（DTN）
+- 以及多种混合架构，以提升覆盖、抗毁与冗余能力
+
+### 2.5 高频通信（High Frequency, HF）
+
+HF（3–30 MHz）具备一定超视距能力（如天波传播），在远距离通信中仍具价值。HF 通信在军事环境中常用于在基础设施受限或遭破坏情况下维持通信，尤其在海上或偏远地区。其优势与挑战包括：
+- 优势：可实现较远距离、无需卫星、设备相对简化
+- 挑战：信道易受电离层、天气、噪声与干扰影响，带宽有限，时延与误码特性随环境变化明显
+
+---
+
+## 3 全球范围内最突出且适配性强的 TDL（Most Prominent and Adaptable TDLs around Globe）
+
+本节概述多种常见战术数据链（TDL）标准与代表系统，并强调不同链路在消息集、接入方式、工作频段、LOS/BLOS 能力与互操作方面的差异。
+
+### 3.1 Link 11
+
+Link-11 是一种半双工（half-duplex）数据链，可网络化运行，包含网络控制站（Network Control Station, NCS）与参与单元（Participating Units, PU）。NCS 负责网络控制与运行规则维护，使各单元能够接入并保持网络秩序。
+
+Link-11 具有不同变体（如 Link-11A / Link-11B 等）。其中 Link-11A 可在 HF 与 UHF 工作，兼具 BLOS 与 LOS 的一定灵活性；Link-11B 主要用于地面-地面等场景，常见点对点串行传输方式也被称为 Serial Link-11。
+
+### 3.2 Link 16
+
+Link-16 规定了 J 系列消息格式，并针对 MIDS/JTIDS 的 TDMA 架构进行了优化。Link-16 使用时隙结构，最多可同时运行 127 个网络成员，并可通过离散频率跳变模式并行工作。终端初始化参数需要满足平台的信息交换需求（IERs），网络规划对性能与互操作至关重要。
+
+### 3.3 Link 22
+
+Link-22（NILE）被设计为替代 Link-11，并与 Link-16 互补。其目标是在更互联环境中提供更强能力，支持 LOS 与 BLOS 场景，增强数据交换效率与 C5ISR 支撑能力。
+
+### 3.4 其他常见链路与协议（举例）
+
+- **JREAP（Joint Range Extension Application Protocol）**：用于扩展数据链通信距离，常见 JREAP-A / B / C 三种实现方式。  
+- **SADL（Situation Awareness Data Link）**：强调态势感知共享，常用于地面/近地平台间信息共享，也可通过网关与 Link-16 互通（例如以间接 PPLI 方式接入）。  
+- **VMF（Variable Message Format）**：可变消息格式，面向带宽受限条件下的灵活消息传输与互操作。  
+- 以及其他链路（如 IDM、TADIL 体系、SIMPLE 等）在不同国家/组织体系下有各自应用。
+
+---
+
+## 4 TDL 硬件与软件（TDL Hardware and software）
+
+TDL 系统通常由硬件与软件两部分构成，并与传感器、指挥控制系统、显示终端、加密设备、通信设备协同工作。
+
+### 4.1 硬件（典型构成）
+
+硬件部分可能包括（依具体链路与平台而异）：
+- 数据终端（Terminal）/ 调制解调器（MODEM）
+- 加密设备（Encryption device）
+- 射频收发机（RF Transceiver）、功放、滤波器
+- 天线系统（可能具备定向/全向/波束控制能力）
+- 网络接口/网关设备（用于跨链路转发与互操作）
+- 任务计算机与数据处理单元
+
+### 4.2 软件（典型构成）
+
+软件部分可能包括：
+- 消息处理与消息集实现（如 J-series、M-series 等）
+- 网络管理与时隙/频率资源规划模块
+- 路由/转发与互操作协议栈
+- 安全机制管理（密钥、鉴权、加密同步等）
+- 与上层 C2/C5ISR 系统的数据融合与显示接口
+
+此外，软件定义无线电（SDR）为 TDL 提供更高灵活性：通过软件实现波形与协议，可提高升级能力与适应性，但也对安全认证与实现一致性提出更高要求。
+
+---
+
+## 5 TDL 系统体系结构（以 Link 11 及其未来为例）
+（TDL System Architecture (For Example Link 11 and its Future)）
+
+Link-11 网络由网络控制站（NCS）与若干参与单元（PU）组成。以下对典型组成做简要说明：
+
+### 5.1 战术数据系统（TDS）
+
+TDS 实质上是计算机系统，可从雷达、导航系统与人工操作等来源接收数据，进行数字化采集与处理，用于生成航迹更新、响应操作员查询并支撑态势图构建。
+
+### 5.2 加密设备（Encryption Device）
+
+加密设备用于在传输时对来自 TDS 的数据进行加密，并发送到数据终端集（DTS）（对应“发送链路”）；在接收侧则对收到的数据解密后送入 TDS（对应“接收链路”）。
+
+> **Figure 6**：Link-11 机载系统架构示意（Onboard system architecture of the Link-11 system）  
+> ![Figure 6](figure6.png)
+
+### 5.3 数据终端集（DTS）
+
+DTS 是 Link-11 系统核心，承担调制/解调（MODEM）功能。TDS 将数据送入 DTS 进行调制并发射；接收侧 DTS 解调后输出给加密/解密与 TDS 处理。
+
+Link-11 的 DTS 常见工作模式包括（原文列出 6 类）：
+1. **Net Synchronization（网络同步）**：用于与各站建立/保持同步；NCS 发送同步信息。  
+2. **Net Test（网络测试）**：用于确认 Link-11 单元之间连通性；完成后转入 Roll Call 并开始链路运行。  
+3. **Roll Call（轮询）**：Link-11 的典型工作模式；NCS 依次询问某个 PU，PU 响应并传输数据，持续近实时交换战术信息。  
+4. **Broadcast（广播）**：某 PU 持续向网络所有成员发送一系列短广播消息，直到操作员手动停止。  
+5. **Short Broadcast（短广播）**：由前哨站或 NCS 发送短广播；计算机完成发送后可自动停止。  
+6. **Radio Silence（无线电静默）**：允许单元接收 Link-11 数据但不发射，便于在加入活动网络之前先同步其 TDS 与 NCS。
+
+> **Figure 7**：Link-11 发送与接收数据流（Transmission and receiving data flow of the Link-11）  
+> ![Figure 7](figure7.png)
+
+### 5.4 无线电（HF / UHF）
+
+Link-11 在 HF 与 UHF 两个频段工作：
+- HF：地波范围可达约 300 海里，并可能通过天波实现更远距离
+- UHF：常用于视距链路，舰对舰、舰对空等场景覆盖约 150 海里量级（具体与环境相关）
+
+Link-11 常采用 QPSK（Quadrature Phase Shift Keying）调制方式，并通常在 NCS 控制下以 Roll Call 模式运行。
+
+作者指出 Link-22 被视为 Link-11 的后继（原文提及 2024 年时间点），并说明 Link-11 存在一些问题，因此推动了 Link-22 项目以获得更强能力与更适配现代互联环境的设计。
+
+---
+
+## 6 TDL 市场趋势与增长分析（TDL Market Trend and Growth Analysis）
+
+从解决方案（solution）角度看，TDL 市场通常可划分为两大部分：
+- **硬件（Hardware）**：终端、加密设备、射频设备、网关、天线等
+- **软件（Software）**：消息集实现、网络规划、互操作协议、管理工具、数据融合接口等
+
+在现代作战中，对 BLOS（超视距）能力的需求增长，会推动 Link-22、JREAP 等扩展方案的需求；同时，多域联合作战趋势也要求更强互操作与数据融合能力，从而带动软件与系统集成能力增长。
+
+不过，疫情期间国防开支压力与严格军用标准会在一定程度上限制增长；但总体趋势仍是向实时、安全、可互操作的数据链体系演进。
+
+---
+
+## 7 TDL 未来市场预测（Forecast of TDL Future Market）
+
+全球 TDL 市场规模在 2021 年约为 **66.4 亿美元**。预计市场将从 2022 年约 **70.0 亿美元**增长到 2029 年约 **120 亿美元**，未来十年复合年增长率（CAGR）约 **7.7%**。
+
+新冠疫情导致 TDL 市场需求低于疫情前预期；全球市场在 2020 年相较 2019 年表现为较低增长（原文给出约 **3.9%** 的低增长）。不同国家/地区在全球 TDL 市场中占比不同，常见区域划分包括北美、欧洲、亚洲等。
+
+---
+
+## 8 TDL 的未来发展与使用（Future Development and Use of TDL）
+
+未来 TDL 的发展趋势与使用场景将更强地面向：
+- **多域联合作战（Joint / Multi-domain）**：空、海、陆、天、电磁与网络空间信息融合  
+- **更高安全性与抗干扰能力**：在对抗环境下保持可靠传输  
+- **更强互操作（Interoperability）**：跨军种、跨平台、跨国家标准体系的数据交换  
+- **体系级数据分发与融合**：与 C5ISR、JADC2 / JADO 等体系化指挥控制概念结合  
+- **软件化、模块化与可升级性**：软件定义能力增强、波形与协议可快速更新
+
+同时，作者也讨论了将数据链与更通用的通信/消息机制融合的思路（例如以网关方式在不同协议间转换，或以通用消息/发布订阅方式实现选择性分发），以提升体系灵活性与扩展性。
+
+---
+
+## 9 结论（Conclusion）
+
+随着传感器与平台数量增长，战术数据量与信息分发需求持续上升。为了支撑快速决策与复杂作战，必须具备安全可靠的通信链路，以实现数据共享、融合与态势感知构建。战术数据链（TDL）提供了标准化、可互操作与安全的战术数据交换能力，可显著提升作战单元协同效率，并支撑 C2/C5ISR 体系实现更快速、更准确的决策。
+
+作者认为，TDL 的价值不仅体现在战场空间，也可能在更广泛的信息分发与复杂系统协同（甚至商业领域）中体现；其未来发展将围绕互操作、抗干扰、BLOS 扩展、多链路协同与体系级融合持续推进。
+
+---
+
+## 参考文献（原文保留）
+
+> 注：以下参考文献按原文提取保留（为避免二次翻译造成文献信息误差）。
+
+References:
+1 https://www.britannica.com/technology/military-communication
+2 S. Min, “Research on anti-jamming technology of data link transmission waveform,” M.S. thesis, Univ. Electron. Sci. Technol. China, Chengdu, China, 2020
+3 F. Ling, (2014), “Research on signal recognition method of data link-11,” Ph.D. dissertation, Dept. Inf. Communication. Eng., Xidian Univ., Xi’an, China, 2014
+4 X. Li and Z. Li, “Simulation of data link communication system based on simulink,” Modern Electron. Techn., vol. 33, no. 3, 2010
+5 Y. Guang, J. Zhou, and P. Luo, “Simulation of data link communication system based on simulink,” J. Syst. Simul., vol. 17, no. 17, 2008
+6 L. Yan and J. Lu, “Link22-A next generation tactical data link for NATO,” Ship Electron. Eng., vol. 1, no. 1, 2006
+7 D Xie, N Wu, and C Wang, “Performance analysis and simulation of RS code in data link system,” J. Microw., vol. 2, no. S2, 2010
+8 https://www.ultra.group/our-business-units/intelligence-communications/specialist-radio-frequency/tactical-rf/, accessed on 07 July 2023
+9 Maghdid, S.M., “A Comprehensive Review of Indoor/Outdoor Localization Solutions in IoT era: Research Challenges and Future Perspectives,” TechRxiv
+...（以下条目按原文继续粘贴即可，如需我把参考文献区全部逐条整理成规范格式，我也可以继续处理）

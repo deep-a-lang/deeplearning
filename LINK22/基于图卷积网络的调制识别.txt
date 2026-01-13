@@ -1,0 +1,196 @@
+# 基于图卷积网络的调制识别  
+**Modulation Recognition With Graph Convolutional Network**
+
+**Yabo Liu，Yi Liu，Cheng Yang**  
+**IEEE Wireless Communications Letters**, Vol. 9, No. 5, May 2020  
+**DOI**：10.1109/LWC.2019.2963828
+
+---
+
+## 摘要
+在大多数非合作通信系统中，调制识别是一项基础且关键的技术。传统的调制识别方法可分为最大似然假设类算法与模式识别类算法。然而，这些方法要么复杂度较高，要么需要额外的数据预处理。近年来，神经网络算法在调制识别方面显示出巨大潜力。
+
+在本文（Letter）中，我们提出一种利用**图卷积网络**（Graph Convolutional Network, GCN）的调制识别方法。然而，由于调制信号并不是图结构数据，GCN 不能直接用于调制识别。为将信号转换为图，我们将调制数据集划分为多个子集；分别设计了用于提取信号特征的**特征提取卷积神经网络**（Feature Extraction CNN, FECNN）以及用于将子集映射为图的**图映射卷积神经网络**（Graph Mapping CNN, GMCNN）。随后将构建的图输入 GCN，以预测子集中未标注信号的调制方式。
+
+实验结果表明：与 CNN 算法和 K 近邻（K-nearest neighbor, KNN）算法相比，本文提出的 GCN 算法具有更高的识别准确率，尤其在低信噪比（SNR）条件下优势更明显。
+
+**索引词**：调制识别；图卷积网络；卷积神经网络；图映射
+
+---
+
+## I. 引言
+信号调制技术被广泛用于实现高效数据传输。在非合作通信系统中，调制识别（MR）是识别未知信号调制方式的重要手段，在认知无线电与电子对抗等民用、军事应用中发挥重要作用。
+
+传统的调制识别方法可分为两类：**最大似然假设类算法**与**模式识别类算法**。最大似然假设类算法基于严格的数学推导，通过最大化似然函数实现判决。文献 [1] 提出了适用于多种通信系统的平均似然比识别算法，可用于识别相移键控调制信号。文献 [2] 将平均似然比算法扩展为广义似然比识别方案，并广泛使用信号高阶统计量。文献 [3] 结合上述两种似然算法提出了混合似然比识别算法。然而，最大似然假设类算法的复杂度通常过高。
+
+模式识别类算法通常包含两步：提取信号特征与分类识别。文献 [4] 提取信号瞬时统计量并用决策树识别调制方式；文献 [5] 对相移键控与频移键控调制信号进行小波变换提取特征，再用模式识别算法进行处理；文献 [6] 提取调制信号的四阶统计量并分析不同信噪比条件下的识别准确率。可见，提取的信号特征类型对调制识别准确率影响显著。
+
+近几年，深度学习因在模式识别领域表现突出而被广泛研究。与传统模式识别方法相比，深度学习方法能够自动提取数据特征并进行预测。许多基于不同网络结构（如卷积神经网络 CNN、循环神经网络 RNN）的调制识别算法已被研究。例如，文献 [7] 提出由 2 个卷积层与 2 个全连接层组成的 CNN 用于识别信号调制方式，并开源了由通用软件无线电外设生成的调制数据集。文献 [8] 比较了长短期记忆网络（LSTM）与 CNN 在调制识别中的表现，仿真结果表明网络深度对识别准确率影响不大。文献 [9] 提出同时将原始信号与其高阶统计量输入 RNN，以提升识别准确率。文献 [10] 将信号高阶统计量输入两层自编码器，并采用逐层训练策略训练自编码器。
+
+最近，一些研究开始致力于利用神经网络处理图结构数据。其中一个重要成果是连接主义模型——图卷积网络（GCN），它能够融合图中相邻节点之间传递的消息 [11]。GCN 已成功用于文本分类、关系抽取与图像分类等任务 [12]。这启发我们将 GCN 用于调制识别。然而，GCN 不能直接处理信号数据，因为信号不是图数据。因此，本文设计了两个 CNN：**特征提取 CNN（FECNN）**与**图映射 CNN（GMCNN）**，分别用于提取信号特征并将信号映射到图结构。随后提出一种基于 GCN 的信号调制识别算法。
+
+---
+
+## （论文脚注信息）
+- 收稿日期：2019-10-18；接收日期：2019-12-26。  
+- 在线发表日期：2020-01-03；当前版本日期：2020-05-08。  
+- 资助：国家自然科学基金（Grant 61671341）；陕西省重要产业链项目（Grant 2018ZDCXL-GY-04-06）；中国 111 计划（Grant B08038）。  
+- 本文审稿协调并批准发表的副编辑：S. Zhang。  
+- 通讯作者：Yi Liu。  
+- 作者单位与邮箱：  
+  - Yabo Liu、Yi Liu：西安电子科技大学 综合业务网国家重点实验室，中国 西安 710071（ybliu1994@163.com；yliu@xidian.edu.cn）  
+  - Cheng Yang：中国煤炭西安设计工程有限责任公司 信息工程部，中国 西安 710054（4658886@qq.com）
+
+---
+
+## II. 基于 GCN 的调制识别模型
+在典型 GCN 的分类应用中，每个输入图同时包含有标注节点与未标注节点。GCN 可以通过融合有标注节点传递的消息来对未标注节点分类。在本文中，我们需要选择一些有标注与未标注信号来生成每一张图。因此，在把信号转换为图之前，我们将调制数据集划分为多个子集。每个子集可表示为：
+
+$$
+X=\Big\{\{(x_1,y_1),\ldots,(x_p,y_p)\},\{\bar{x}_1,\ldots,\bar{x}_q\}\Big\}
+\tag{1}
+$$
+
+其中，$p$ 为有标注信号 $x$ 的数量，$q$ 为未标注信号 $\bar{x}$ 的数量。$x_i$ 与 $\bar{x}_i$ 均来自调制数据集；$y_i$ 是与 $x_i$ 对应的标签；$\{\bar{y}_1,\ldots,\bar{y}_q\}$ 是未标注信号 $\{\bar{x}_1,\ldots,\bar{x}_q\}$ 的标签。每个标签属于 $\{1,\ldots,C\}$，其中 $C$ 为调制方式类别数。
+
+GCN 算法以监督方式训练：前向传播时，将有标注信号的类别作为输入特征的一部分；反向传播时，用未标注信号的真实类别来监督训练。训练过程中每一步的目标可表示为：
+
+$$
+\min \frac{1}{q}\,L\!\left(\varphi(X),\{\bar{y}_1,\ldots,\bar{y}_q\}\right)
+\tag{2}
+$$
+
+其中，$L(\cdot)$ 为损失函数，$\varphi(\cdot)$ 为由 GCN 参数化的函数。GCN 的输出 $\varphi(X)$ 包含对子集 $X$ 中未标注信号的预测标签。
+
+该算法可分为三步：**特征提取**、**图映射**与**图卷积**。我们分别提出 FECNN、GMCNN 与 GCN 来实现这些操作。所有网络以监督方式联合训练，同时减少未标注训练信号带来的分类偏差。网络中唯一的损失函数为交叉熵损失，用于度量未标注信号预测标签与真实标签之间的差异。在联合监督训练过程中，FECNN 与 GMCNN 被“迫使”尽可能提取有用信号信息，并生成合理的图结构以帮助 GCN 做出正确预测。
+
+---
+
+### A. 特征提取
+用于提取信号特征的 FECNN 由 **2 个卷积层**与**1 个全连接层**组成。FECNN 的输入为二维矩阵，其两行分别为信号的实部与虚部。每个卷积层后接 Leaky ReLU 激活函数以拟合非线性分布数据。两层卷积的卷积核大小分别为 $1\times 3$ 与 $2\times 3$；步幅均为 $(2,1)$；卷积核数量分别为 32 与 64。全连接层包含 64 个神经元。
+
+图 1 展示了 FECNN 的特征提取流程：首先将从数据集中划分出的一个子集输入 FECNN，网络输出该子集中各信号的特征嵌入。随后，为在训练中引入信号的标签信息，将特征嵌入与其标签的 one-hot 编码进行拼接。对于子集中 $p$ 个有标注信号，其 one-hot 编码来自真实标签；对于 $q$ 个未标注信号，将其 one-hot 编码的所有元素设置为 $1/C$ 以“模糊”其标签。经过特征提取过程，每个子集被转换为一个特征嵌入矩阵。
+
+> 图 1（占位）：FECNN 的特征提取流程  
+> `![图1：FECNN 的特征提取流程](fig1.png)`
+
+---
+
+### B. 图映射
+完成信号特征提取后，需要将每个子集映射为图 $G(V,E)$，其中 $v_i$ 对应第 $i$ 个信号，$E$ 为边的集合。我们使用 GMCNN 来度量子集中任意两信号之间的差异，并输出图结构。
+
+GMCNN 的输入是一个三维矩阵 $M\in \mathbb{R}^{(p+q)\times(p+q)\times(64+C)}$。其中，$m_{i,j}$ 表示子集中第 $i$ 个与第 $j$ 个信号特征嵌入之间的绝对距离。GMCNN 由 4 个卷积层组成。第 1、2、3 个卷积层后均接 Leaky ReLU 激活函数与批归一化（Batch Normalization）。卷积核数量分别为 192、192、96 和 1。所有卷积核大小均为 $1\times 1$，步幅均设为 1。$1\times 1$ 卷积可融合多通道信息，同时保持特征图尺寸不变。通过 $1\times 1$ 卷积，GMCNN 输出一个 $(p+q)\times(p+q)$ 的邻接矩阵，用于刻画图结构。
+
+边的计算可概括为：
+
+$$
+e_{i,j}=\phi(v_i,v_j)=\mathrm{GMCNN}\!\left(\left|v_i-v_j\right|\right)
+\tag{3}
+$$
+
+其中，$e_{i,j}$ 为第 $i$ 个与第 $j$ 个节点之间的边，$\phi(\cdot)$ 为由 GMCNN 参数化的函数。该邻接矩阵计算方式满足对称性：
+
+$$
+\phi(v_i,v_j)=\phi(v_j,v_i)
+\tag{4}
+$$
+
+以及恒等性：
+
+$$
+\phi(v_i,v_i)=0
+\tag{5}
+$$
+
+> 图 2（占位）：GMCNN 的图映射流程  
+> `![图2：GMCNN 的图映射流程](fig2.png)`
+
+---
+
+### C. 图卷积
+自 Scarselli 等人在 2009 年提出图神经网络（GNN）原型以来 [13]，研究者发展了许多 GNN 变体，如 GCN、图注意力网络、图自编码器、图生成网络与图时空网络等。本文采用一种较为简单的 GCN 实现，其使用邻接算子：
+
+$$
+x_n^{k+1}=\rho\!\left(\sum_{m\in N_n} x_m^{k}\, w_n^{k}\right)
+\tag{6}
+$$
+
+其中，$x_n^{k+1}$ 是第 $n$ 个节点在第 $(k+1)$ 层的特征向量；$N_n$ 是第 $n$ 个节点的邻接节点集合；$x_m^{k}$ 是第 $k$ 层中第 $m$ 个节点的特征向量；$w_n^{k}$ 是连接第 $n$ 个节点与其邻接节点的权重参数；$\rho(\cdot)$ 为激活函数。
+
+在图卷积过程中，每个节点向其邻接节点发送消息，并融合从邻接节点接收的消息；随后通过激活函数增强 GCN 拟合数据分布的能力。为归一化输入数据，我们预先对邻接矩阵的每一行施加 softmax。随着 GCN 加深，其感受野变大，预测将融合更多消息。由于 GMCNN 计算得到的邻接矩阵较为稠密连接，因此不需要设置过多层。本文选择 GCN 的层数为 2。图卷积过程如图 2 所示：圆圈代表子集中的信号；在每一层图卷积之前都会重新计算邻接矩阵；最终可得到子集中未标注信号的特征向量，并通过 softmax 映射为最终分类结果。
+
+---
+
+## III. 实验结果
+
+### A. 实验设置
+为评估所提基于 GCN 的调制识别算法，我们在本节进行多组实验。本文生成的数据集包含 8 种数字调制信号，SNR 范围为 $-14\text{ dB}$ 到 $+10\text{ dB}$。调制方式包括：2ASK、4ASK、2FSK、4FSK、BPSK、QPSK、16QAM 和 64QAM，这些在现代通信系统中被广泛使用。每个信号由 256 个采样点组成。
+
+在将信号映射到图之前，我们将数据集划分为许多子集。式 (1) 中取 $p=5\times 8$，$q=1$。也就是说，每个子集包含 41 个信号：每种调制方式 5 个有标注信号（共 40 个有标注信号），以及 1 个未标注信号。
+
+实验设置中，GCN 的损失函数与激活函数分别为交叉熵损失与 Leaky ReLU。Batch size、学习率与 SGD 动量分别设为 10、0.001 与 0.5。由于三张网络联合训练，它们共享相同的训练设置。我们首先研究在 10 dB SNR 下，GCN 识别准确率随训练迭代次数的变化；随后计算 GCN 对各调制方式的识别准确率；最后将 GCN 与 KNN 及文献 [7] 提出的 CNN 算法进行对比。
+
+> 图 3（占位）：10 dB SNR 下，GCN 识别准确率与训练迭代次数的关系  
+> `![图3：10 dB SNR 下准确率-迭代次数曲线](fig3.png)`
+
+---
+
+### B. 结果
+图 3 展示了在 10 dB SNR 下，GCN 识别准确率随训练迭代次数的变化。从图中可见，当迭代次数低于 9000 时，准确率随训练推进而提升；之后准确率趋于稳定。
+
+我们还研究了 GCN 对不同调制方式的识别性能。图 4 给出了 GCN 对 8 种调制方式的识别准确率。可以看到，所有调制方式的识别准确率随 SNR 增大而提升。由于低阶调制信号相较高阶调制信号更不复杂，GCN 更容易从低阶调制信号中提取并学习特征，因此低阶调制方式的识别准确率高于高阶调制方式。
+
+> 图 4（占位）：GCN 对 8 种调制方式的识别准确率  
+> `![图4：8 种调制方式的准确率-SNR 曲线](fig4.png)`
+
+GCN、CNN 与 KNN 的识别准确率对比如图 5 所示。三种算法均使用相同数据集且不做任何预处理。可以看到，KNN 在没有人工提取信号特征时表现最差；而神经网络能够自动提取信号特征，因此两种神经网络算法的识别准确率显著高于 KNN。GCN 在 SNR 高于 2 dB 时与 CNN 的准确率几乎相同，而在 SNR 低于 2 dB 时准确率高于 CNN。尤其当 SNR 为 −20 dB 时，GCN 的识别准确率比 CNN 高约 10%。其原因在于：GCN 能够在一张图内融合所有信号特征，并将测试信号与训练信号的所有调制方式进行对比，从而做出预测。
+
+> 图 5（占位）：GCN、CNN 与 KNN 的识别性能对比  
+> `![图5：三种算法的准确率-SNR 对比](fig5.png)`
+
+我们还在 Tesla V100 GPU 上比较了 GCN 与 CNN（原文表头写作 CCN）两种算法的参数量与平均推理时间，如表 1 所示。由表可见，GCN 的参数量少于 CNN；但 GCN 的平均推理时间更长。这是因为 PyTorch 实现的图卷积算子效率还不够高。
+
+---
+
+## 表 1：GCN 与 CNN 的参数量与平均推理时间对比（Tesla V100 GPU）
+（可选：用 LaTeX 表格便于论文风格排版）
+
+$$
+\begin{array}{|c|c|c|}
+\hline
+\textbf{算法} & \textbf{参数量（Number of parameters）} & \textbf{推理时间（ms）} \\
+\hline
+\text{GCN} & 437071 & 0.78 \\
+\hline
+\text{CNN} & 1455768 & 0.16 \\
+\hline
+\end{array}
+$$
+
+---
+
+## IV. 结论
+在本文中，我们提出了将 GCN 应用于调制识别的初步尝试。为将调制信号转换为图结构，我们将数据集划分为多个子集，每个子集包含 40 个有标注信号与 1 个未标注信号。我们分别设计了基于 CNN 的 FECNN 与 GMCNN，用于提取信号特征并将子集映射为图结构；随后将图输入 GCN 以识别未标注信号的调制方式。实验结果表明：与 CNN 与 KNN 算法相比，所提 GCN 算法具有更好的性能，尤其在低 SNR 条件下优势明显。
+
+---
+
+## 参考文献
+[1] K. Kim, A. Polydoros, “数字调制分类：BPSK 与 QPSK 情形（Digital modulation classification: The BPSK versus QPSK case）,” in *Proc. MILCOM*, San Diego, CA, USA, 1988, pp. 431–436.  
+[2] D. Boiteau, C. Le Martret, “用于调制分类的通用最大似然框架（A general maximum likelihood framework for modulation classification）,” in *Proc. IEEE ICASSP*, vol. 4, Seattle, WA, USA, 1998, pp. 2165–2168.  
+[3] L. Hong, K. C. Ho, “未知信号幅度下的 BPSK/QPSK 调制分类（BPSK and QPSK modulation classification with unknown signal level）,” in *Proc. MILCOM*, vol. 2, Los Angeles, CA, USA, 2000, pp. 976–980.  
+[4] A. K. Nandi, E. E. Azzouz, “通信信号自动调制识别算法（Algorithms for automatic modulation recognition of communication signals）,” *IEEE Trans. Commun.*, vol. 46, no. 4, pp. 431–436, Apr. 1998.  
+[5] K. C. Ho, W. Prokopiw, Y. T. Chan, “基于小波变换的数字信号调制识别（Modulation identification of digital signals by the wavelet transform）,” *IEE Proc. Radar Sonar Navig.*, vol. 147, no. 4, pp. 169–176, 2000.  
+[6] A. Swami, B. M. Sadler, “使用累积量的分层数字调制分类（Hierarchical digital modulation classification using cumulants）,” *IEEE Trans. Commun.*, vol. 48, no. 3, pp. 416–429, Mar. 2000.  
+[7] T. J. O’Shea, J. Corgan, T. C. Clancy, “卷积无线电调制识别网络（Convolutional radio modulation recognition networks）,” in *Proc. Int. Conf. Eng. Appl. Neural Netw.*, 2016, pp. 213–226.  
+[8] N. E. West, T. O’Shea, “用于调制识别的深层架构（Deep architectures for modulation recognition）,” in *Proc. IEEE DySPAN*, Piscataway, NJ, USA, 2017, pp. 1–6.  
+[9] M. Zhang, Y. Zeng, Z. Han, Y. Gong, “使用深度学习架构的自动调制识别（Automatic modulation recognition using deep learning architectures）,” in *Proc. IEEE SPAWC*, Kalamata, Greece, 2018, pp. 1–5.  
+[10] M. Bouchou, H. Wang, M. E. H. Lakhdari, “基于堆叠稀疏自编码器的自动数字调制识别（Automatic digital modulation recognition based on stacked sparse auto-encoder）,” in *Proc. IEEE ICCT*, Chengdu, China, 2017, pp. 28–32.  
+[11] J. Bruna, W. Zaremba, A. Szlam, Y. LeCun, “图上的谱网络与局部连接网络（Spectral networks and locally connected networks on graphs）,” in *Proc. ICLR*, Banff, AB, Canada, 2014.  
+[12] V. Garcia, J. Bruna, “用图神经网络进行少样本学习（Few-shot learning with graph neural networks）,” in *Proc. ICLR*, Vancouver, BC, Canada, 2018.  
+[13] F. Scarselli, M. Gori, A. C. Tsoi, M. Hagenbuchner, G. Monfardini, “图神经网络模型（The graph neural network model）,” *IEEE Trans. Neural Netw.*, vol. 20, no. 1, pp. 61–80, Jan. 2009.
+
+---
+
+## 版权与许可声明（译）
+2162-2345 © 2020 IEEE。允许个人使用，但再次出版/再分发需要 IEEE 许可。更多信息参见 IEEE 的版权与许可页面。
+（PDF 页面中含 IEEE Xplore 下载与授权水印信息。）

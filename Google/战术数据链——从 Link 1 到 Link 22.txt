@@ -1,0 +1,257 @@
+# 战术数据链——从 Link 1 到 Link 22（TACTICAL DATA LINK – FROM LINK 1 TO LINK 22）
+
+**期刊信息**： “Mircea cel Batran” Naval Academy Scientific Bulletin, Volume XIX – 2016 – Issue 2  
+（期刊收录：PROQUEST / DOAJ / Crossref / EBSCOhost / INDEX COPERNICUS / DRJI / OAJI / JOURNAL INDEX / I2OR / SCIENCE LIBRARY INDEX / Google Scholar / Academic Keys / ROAD Open Access / Academic Resources / Scientific Indexing Services / SCIPIO / JIFACTOR）
+
+---
+
+## 作者
+
+- **Anca STOICA**¹  
+- **Diana MILITARU**²  
+- **Dan MOLDOVEANU**³  
+- **Alina POPA**⁴  
+
+¹ 科研助理，Lt. Eng.，Military Equipment and Technologies Research Agency  
+地址：16 Aeroportului street, Clinceni, Ilfov  
+邮箱：astoica@acttm.ro  
+
+² 科研人员，PhD Eng.，Military Equipment and Technologies Research Agency  
+
+³ 科研助理，Slt. Eng.，Military Equipment and Technologies Research Agency  
+
+⁴ 科研助理，Eng.，Military Equipment and Technologies Research Agency  
+
+---
+
+## 摘要（Abstract）
+
+战术数据链（TDL）是 C4ISR 系统（指挥、控制、通信、计算机、情报、监视与侦察）中的组成要素，能够以（近）实时方式持续交换关于**太空、地面、空中、海面与水下平台**的信息，包括**盟军、中立与敌对**单位的数据。TDL 的主要目标是为指挥员提供作战监控能力，并向下属发送特定命令与数据，是落实**网络中心战**概念的基础组件之一。战术数据链通过数据链标准，实现经由无线电波或电缆进行通信，从而传输、转发并接收加密的战术数据。本文旨在对主要 TDL 标准及其能力进行比较概述。
+
+**关键词（Key words）**：战术数据链；Link 1；Link 11；Link 16；Link 22
+
+---
+
+## 1. 引言（Introduction）
+
+在规划、决策与指挥军事行动时，对数据与信息量的需求出现了前所未有的增长。关于目标、部队机动及其状态、补给水平与资源可用性等信息——对所有交战方（我方、盟军与对手）——都必须提供给联合指挥机构及其部队，并且这些信息往往来自地理上分散的装备/系统。因此，必须将信息在**合适的时间、合适的位置、以合适的形式**交付给指挥员，使其能够在军事行动部署期间，以近实时方式在指挥控制（C2）流程中做出决策。
+
+“数据链（data link）”一词指所有用于通信系统中的技术、应用和消息封装/打包方式；而军事领域的“战术数据链（tactical data link）”指在军事行动中用于支撑作战的各类数据链。已知的数据链通常依据特定标准设计，例如 Link 1、Link 4、Link 11、Link 14、Link 16 或 Link 22。它们分别面向不同的军事通信需求而研发：其中一些已较为陈旧但仍在使用（如 Link 1）；另一方面，Link 16 与 Link 22 属于最新且最先进的战术数据链网络。基于上述讨论，本文将对这些标准做简要介绍。
+
+> **图 1（Figure 1）**：战术数据链（TDL）使用示例 [1]  
+> ![图1-战术数据链（TDL）使用示例](figure1.png)
+
+---
+
+### 表 1（Table 1）NATO 使用的 TDL 系统
+
+| 链路类型（Link type） | 用户群体（User community） | 应用（Application） |
+|---|---|---|
+| Link 1 | 空中态势（Aerial situation） | 与其他网络（空中管制/空中防空）互联，并与移动系统及主要用户群组互联。 |
+| Link 11 | 海上控制 / 空中控制（Marine control / Aerial control） | 在 C2 域内提供用于态势图像编绘的跟踪数据交换，并传输命令。 |
+| Link 11B | 空中防空（Aerial defense） | 地基武器系统、C2 与监视系统之间，以及 Link 11 网络参与单位之间的战术信息交换。 |
+| Link 16 | 联合（Joint） | 高吞吐数字数据链，无中心节点（hub），并包含用于多域作战（陆/海/空）的电子防护措施（EPM）。 |
+| Link 22 | 联合（Joint） | 旨在确保直视距之外（BLOS）的连接能力，采用 DTDMA 架构。 |
+
+---
+
+## 2. 战术数据链（TDL）（Tactical Data Link）
+
+联合行动指挥机构必须具备 TDL 装备，才能从 MIDS（Multifunctional Information Distribution Systems，多功能信息分发系统）网络输入数据中获益。该网络输入数据由陆军、空军、海军及军事信息组织提供，具体取决于指挥机构的需求（任务与能力），以及需要向网络中注入的特定数据（见图 1）。表 1 给出了 TDL 的总体特征。
+
+TDL 系统是实现联合情报、监视与侦察（JISR：Joint Intelligence, Surveillance and Reconnaissance）概念的潜在解决方案。JISR 的主要任务包括：预警、为作战规划提供信息支撑、获取关于敌方与环境的信息以进行态势评估、面向目标的数据与信息、信息作战支撑、风险评估信息与部队防护信息等。上述任务的完成依赖于 TDL 的技术规范，需满足如下要求：**规律性、清晰性、简洁性、标准化、可验证性，以及信息的选择性分发与分级分类**。
+
+根据用于承载战术数据的消息类型不同，TDL 的主要功能包括：
+
+a. TDL 参数信息交换；  
+b. 网络管理；  
+c. 精确参与者位置与识别（PPLI：Precise Participant Location and Identification）；  
+d. 空中监视；  
+e. 地面监视；  
+f. 陆上监视（Terrestrial surveillance）；  
+g. 太空监视；  
+h. 电子监视；  
+i. 电子战（EW：Electronic warfare）；  
+j. 情报（Intelligence）；  
+k. 任务管理（Mission management）；  
+l. 武器协调与管理（Weapons coordination and management）；  
+m. 空中控制（Air control）；  
+n. 信息化/信息管理（Managementul informatic）；  
+o. 自由文本交换（Free text exchange）；  
+p. 语音通信交换（Voice communication exchange）。
+
+TDL 的使用取决于作战区域或演训区域的军事需求，如表 2 所示。
+
+---
+
+### 表 2（Table 2）TDL 功能领域（TDL functional areas）
+
+| 功能领域（Functional areas） | Link 11 | Link 16 | Link 22 |
+|---|:---:|:---:|:---:|
+| 平台状态监视（Status monitoring platform） | x | x | x |
+| 空中监视（Air surveillance） | x | x | x |
+| 地面监视（Land surveillance） | - | x | x |
+| 海面监视（Surface surveillance） | x | x | x |
+| 水下监视（Subsurface surveillance） | x | x | x |
+| 太空监视（Space surveillance） | - | x | x |
+| 电子战（Electronic warfare） | x | x | x |
+| 武器协调（Weapons coordination） | x | x | x |
+| 指挥（Command） | x | x | x |
+| 飞行器控制（Aircraft control） | - | x | x |
+| 网络管理（Network management） | - | x | x |
+| Imagi(stics)（原文如此） | - | x | - |
+
+数据交换能力要求：在启动并运行任何 TDL 系统之前，必须确保传输媒介可用，包括有线通信链路以及无线电频率的分配。战术数据链中装备连接方案的主要特征见表 3。
+
+---
+
+### 表 3（Table 3）TDL 联网方案特性（Characteristics of TDL networking scheme）
+
+| 特性（Characteristics） | Link 1 | Link 11 | Link 16 | Link 22 |
+|---|---|---|---|---|
+| 频率（Frequency） | 点对点有线（Point-to-point land line） | HF / UHF | UHF / 扩频（Spread） | HF/UHF 扩频（Spread） |
+| 速度（bit/sec） | 1,200 | 1,800 | > 57,600 | - |
+| 抗 ECM（ECM resistance） | - | - | x | x |
+| 加密安全（Crypto-secure） | - | x | x | x |
+| 无节点/无中心（Nodeless） | - | - | x | x |
+| 扩展视距（Extended LOS） | - | - | x | x |
+| 抗干扰（Antijam） | - | - | x | - |
+| 数据率（kbps） | 1.2 | 1.3 ÷ 2.25 | 2.8 ÷ 115.2 | 2.4 |
+| 标准消息（Standard message） | S 系列 | M 系列 | J 系列 | J 系列 |
+| 参与者（Participants） | （空） | 4 ÷ 8 | > 128 | 40 |
+| 语音电路（Voice circuits） | - | - | 2 | - |
+| 架构（Architecture） | 双工数字（Duplex digital） | 广播式无线（Radio Broadcast） | TDMA | DTDMA |
+
+---
+
+## 3. 从 Link 1 到 Link 22（From Link 1 to Link 22）
+
+在数据链的发展演进中，大体可分为两代：  
+第一代数据链（Link 1、Link 4、Link 11、Link 11B、Link 14）在 20 世纪 50—60 年代基于 **8 位计算机**开发，功能受限且数据速率较低（600–2400 bps）。  
+第二代数据链（Link 16、Link 22）在 20 世纪 70—80 年代基于 **16 位计算机**开发，具备多功能特性且数据速率更高（2400 bps–1 Mbps）。
+
+---
+
+### 3.1 Link 1
+
+Link 1 是一种点对点战术链路，基于固定的数字消息集合，用于互联欧洲 NATO 的地面防空（counterair）固定站点，以便在主网络群组内交换与空中态势感知相关的数据与信息。
+
+---
+
+### 3.2 Link 11
+
+Link 11 是一种安全的半双工战术数据无线电链路，NATO 使用它在机载、陆基与舰载战术数据系统之间传输数字信息。Link 11 工作于 HF 或 UHF 频段。目前 Link 11 计划被 Link 22 取代。其规范标准为 **MIL-STD-6011**。
+
+---
+
+### 3.3 Link 16
+
+Link 16 是一种高容量数据链，具有跳频特性与抗干扰能力。Link 16 使用 JTIDS（Joint Tactical Information Distribution System，联合战术信息分发系统）终端以及 MIDS（Multifunctional Information Distribution System，多功能信息分发系统）。Link 16 实现了 TDMA（Time Division Multiple Access，时分多址）技术，为参与的 JU（JTIDS Units）提供每秒 128 个时隙；这些时隙按网络用户的多个功能组进行组织。
+
+与 Link 1 和 Link 11 不同，Link 16 使用加密的高容量数据链，不存在单点故障（NCS），并在作战环境（空中、陆上、海上）中提供完整通信所需的电子防护措施。表 3 展示了 NATO 在过去几十年中发展的 TDL 的主要特性，包括最早与最新技术。
+
+Link 16 的主要目的，是支持联合作战单位之间的实时战术信息交换。它使装备 Link 16 的各类平台能够进行战术运用，并提供增强的通信能力，包括：
+
+- 无中心节点（Nodelessness）  
+- 抗干扰（Jam resistance）  
+- 更高数据率（Increased data rate）  
+- 更大的信息交换容量（Increased volume of information exchange）  
+- 数据终端尺寸减小，便于在战斗机与攻击机上安装（Reduced data terminal size...）  
+- 数字化、抗干扰、安全语音能力（Digitized, jam-resistant, secure voice capability）  
+- 精确参与者位置与识别（PPLI）
+
+Link 16 战术数据链的主要应用包括：
+
+- 监视（Surveillance）  
+- 电子战（EW：Electronic War）  
+- 任务管理（MM：Mission Management）/ 武器协调（WC：Weapons Coordination）  
+- 空中控制（Air control）  
+- 战斗机对战斗机网络（Fighter-to-fighter net）  
+- 安全语音信道（Secure voice channels）  
+- 导航（Navigation）  
+- 网络管理（Network management）
+
+Link 16 由若干战术数据链形态构成，它们通过视距（LOS：Line of Sight）无线电媒介进行信息交换。可用的 Link 16 终端包括：
+
+- **JTIDS**：第一代终端，包括 Class1 与 Class2 终端（软件、硬件、射频设备，以及高容量、安全、抗干扰波形）  
+- **MIDS-LVT**：LVT1–LVT11 属于第二代 Link 16 装备类别  
+- **JTRS 与 MIDS JTRS**：未来一代 Link 16 终端
+
+---
+
+### 3.4 Link 22
+
+> **图 2（Figure 2）**：Link 22 网络概览 [1]  
+> ![图2-Link 22 网络概览](figure2.png)
+
+与 Link 11 类似，Link 22 是一种安全的数字无线电链路，工作于 HF 与 UHF 频段，用于支持盟军空中、地面与海军力量之间的数据交换。Link 22 的一个重要特点是支持 **BLOS（Beyond Line of Sight，超视距）**通信能力：在 HF 频段下，Link 22 可提供最远约 **300 海里**距离的通信。不同于 HF 通信能够同时提供 LOS 与 BLOS 通信能力，UHF 频段仅用于 LOS（视距）传输。
+
+如前所述，Link 11 的能力有限，因此 Link 22 的初始计划（NILE – NATO Improvement Link Eleven）目标包括：
+
+- 对 Link 11 的升级与改进（Link 11 upgrading and improvement）  
+- 提升盟军互操作性（Allied Forces interoperability increasing）  
+- 对 Link 16 的补充（Link 16 complementary）  
+- 增强 C4ISR 能力（C4ISR capabilities enhancement）
+
+相较 Link 11 的一个显著改进是：Link 22 即使在较差的传输条件下也能运行；虽然数据率更低，但仍可保持通信。在某个特定单位发生故障时，由于采用分布式协议，整个网络不会受到影响。
+
+Link 22 的设计与标准 ISO 通信协议栈概念类似，由多个层级构成，各层具有独立且特定的功能（见图 3）。
+
+> **图 3（Figure 3）**：等效 ISO/OSI 参考模型 [1]  
+> ![图3-等效 ISO/OSI 参考模型](figure3.png)
+
+为确保图 3 信息完整，下面以文字方式复刻其层级与示例协议（与原图一致）：
+
+| 层级（LEVEL） | 示例（原图内容） | 备注 |
+|---|---|---|
+| 应用层（Application） | J、K、M 系列消息；HTTP、FTP、SNMP | Host Protocols |
+| 表示层（Presentation） | Syntax Translation；MIME | Host Protocols |
+| 会话层（Session） | TLS/SSL | Host Protocols |
+| 传输层（Transport） | TCP、UDP | Host Protocols |
+| 网络层（Network） | IPv4、IPv6、IPSec；1553；X.25 | Network Protocols |
+| 数据链路层（Data Link） | ATM；802.2；P-P | Network Protocols |
+| 物理层（Physical） | RS232、Ethernet、802.11；CDMA、TDMA | Network Protocols |
+
+---
+
+### 表 4（Table 4）Link 11 与 Link 22 的综合对比（A synthetic comparison between Link11 and Link 22）
+
+（原文说明：A synthetic comparison between Link11 and Link 22 is presented in Table 4）
+
+| 功能/规范（Function/Specification） | Link 11（参数/优势/限制） | Link 22（参数/优势/限制） |
+|---|---|---|
+| 网络接入（Network Access） | - 网络周期时间增加（Increased net cycle times）<br>- 接入时延大（Large access delay） | - TDMA 接入（TDMA access）<br>- 消息优先级机制（Prioritization of messages feature） |
+| 紧急呼叫（Emergency calls） | - 无选项（No options） | - 优先注入机制（Priority Injection feature） |
+| 容量（Capacity） | - 参与者数量有限（Limited number of participants：62） | - 支持更多单元（More units：125） |
+| 作战区域（网络覆盖）（Area of Operation / Network Coverage） | - 覆盖区域受限（Limited area）<br>- 依赖平台及其位置（Dependence of the platforms and their positions）<br>- 单元必须全部连接到 NCS（Units must be all connected with the NCS） | - 无限制（采用 WGS-84 系统）（No limitation (it uses the WGS-84 System)）<br>- 作战范围更大（Increased area of operation）<br>- 网络更灵活（Flexible network）<br>- 具备 LOS 与 BLOS 能力（LOS and BLOS capabilities）<br>- 支持路由与中继协议（Routing & relay protocols） |
+| 通信安全（Communication Security） | - 加密等级低（Low encryption level）<br>- 安全性弱（Weak security） | - 强加密系统（Strong encryption system）<br>- 强安全性（Strong security） |
+| 传输安全（Transmission Security） | - 固定 HF 或 UHF 频点（Fixed HF or UHF frequencies）<br>- 易受干扰（Jam vulnerabilities） | - 跳频方案提升可靠通信（Frequency hopping solutions provide reliable communications）<br>- 固定频点通信受影响较小（因为存在多网络）（Fixed frequency communications are not so affected as Link 11 because of the multiple networks） |
+| NCS 失效（NCS failure） | - 若 NCS 宕机，整个网络受影响（If NCS is down the entire network will be affected） | - 不需要 NCS（No NCS required）<br>- 无单点故障（No single point of failure） |
+| 可靠性（Reliability） | - 恶劣条件会影响传输（Bad conditions could affect the transmission）<br>- 可用波形有限（Limited waveforms availability） | - 针对恶劣传输条件的特殊机制（Special mechanism for bad transmission conditions）<br>- 波形更健壮（More robust waveforms） |
+| 带宽（Bandwidth） | - 带宽受限（Limited bandwidth）<br>- 传输速率：1,090 bit/s 到 1,800 bit/s | - 带宽更宽（Wider bandwidth）<br>- 传输速率：1,493 bit/s 到 12,666 bit/s |
+
+---
+
+## 结论（CONCLUSIONS）
+
+战术数据链为美国与 NATO 盟友提供近实时作战信息，包括融合的空情图（友机与敌机位置）以及一般态势感知数据（含防空威胁）。这有助于由地面或空中管制机构实现对战斗机的综合控制，提升飞行员的态势感知与交战/规避威胁的能力，从而提高任务效能。
+
+TDL 能力提供了一种近实时的信息交换方案，可在公共网络上持续且自动更新信息。TDL 保障硬件与软件在和平时期以及演习与战争期间对 C4ISR 应用通信能力的支持。它们服务于 NATO 及盟军，并会根据威胁与脆弱性变化而持续改进。目前，即使 Link 16 与 Link 22 也在持续适配新的信息技术与通信技术（IT&C），并被部署到 NATO 的可部署网络中。
+
+---
+
+## 参考文献（BIBILOGRAPHY）
+
+[1] Understanding Voice and Data Link Networking, Northrop Grumman, December 2014  
+[2] Link 22 Guidebook Overview, Northrop Grumman, July 2013  
+[3] Introduction to tactical digital information Link J and quick reference guide, Air Land Sea Application Center, June 2000  
+[4] https://en.wikipedia.org/wiki/Link_22  
+[5] https://en.wikipedia.org/wiki/MIL-STD-6011  
+[6] https://en.wikipedia.org/wiki/Link_16  
+
+---
+
+## DOI 与许可（原文信息）
+
+- DOI：10.21279/1454-864X-16-I2-046  
+- © 2015. 本作品遵循 Creative Commons Attribution-Noncommercial-Share Alike 4.0 License（署名-非商业-相同方式共享 4.0）许可。

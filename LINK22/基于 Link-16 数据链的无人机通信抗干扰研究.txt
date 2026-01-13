@@ -1,0 +1,275 @@
+# 基于 Link-16 数据链的无人机通信抗干扰研究  
+**Anti-jamming Research of UAV Communication Based on Link-16 Datalink**
+
+Lijun Liu，Ying Lu，Yanfang Fu*，Zijian Cao，Qinjie Li，Yifan Chen  
+西安工业大学 计算机科学与工程学院，中国 陕西 西安 710021  
+（作者邮箱见原文）
+
+会议：2023 第6届计算机网络、电子与自动化国际会议（ICCNEA 2023）  
+IEEE DOI：10.1109/ICCNEA60107.2023.00042
+
+---
+
+## 摘要
+在 Link-16 数据链无人机作战应用背景下，针对无人机作战中的通信干扰问题，以**压制式干扰模型**为例，本文在 OPNET 软件仿真平台上构建了基于 **Link-16、Link-11 与 Link-22** 数据链的无人机通信干扰器“三层建模模型”。模型细化了各层参数含义，并设置合适的仿真场景进行实验验证。通过对比分析实验结果，证明 Link-16 具有较强的抗干扰能力。
+
+Link-16 数据链抗干扰研究一直是热点问题，本文的实验对比研究有助于理解该数据链相关通信能力；对 Link-16 更强抗干扰能力的研究也为后续干扰研究奠定基础，其独特的抗干扰特性有助于军事化作战。
+
+**关键词**：无人机；抗干扰；Link-16 数据链
+
+---
+
+## I. 引言
+早在 20 世纪 50 年代，美国军方就开始关注数据链研究，并逐步建立起较为完整的数据链研究体系。就时隙分配而言，Link-16 采用 TDMA（时分多址）接入方式，可按其通信协议在指定周期内向指定通信对象传输战术消息，从而连接各类武器系统与指控系统，实现战场态势的实时共享。
+
+Link-16 数据链具备扩频、跳频和抗干扰能力，但在无人机执行任务过程中，会面临非常严苛的环境条件，这要求我们不仅要掌握数据链技术，也要掌握对抗数据链技术。因此，对 Link-16 数据链的抗干扰研究可为其干扰理论的建立提供参考。
+
+国内数据链发展与建设起步较晚，数据链仿真技术也相对滞后，主要工作集中在数据链链路仿真及基于 OPNET 的数据链网络仿真。已有工作对 BER 性能、JTIDS 数据链模型等进行仿真，但抗干扰方面的仿真研究相对较少。
+
+由于数据链消息传输方式复杂多样、信道环境复杂且干扰模式复杂，很难通过纯数学方法分析不同环境下消息传输的可靠性，因此常采用仿真方法分析数据链抗干扰能力。本文在分析数据链抗干扰机理基础上，利用 OPNET 仿真软件开展 Link-16（文中亦涉及 Link-11 与 Link-22）数据链模型构建与对比实验。
+
+---
+
+## II. 易用性（EASE OF USE）
+### A. 无人机通信干扰基础理论
+数据链传输信息模型可分为四类，可进一步归为两类：**格式化信息**与**非格式化信息**。无人机数据链的抗干扰能力是指无人机数据链系统提供持续通信服务的能力。
+
+Link-16 数据链的数据传输过程如图 1 所示。
+
+> 图 1（占位）：Link-16 数据链数据传输流程图  
+> `![Fig.1 Link-16 datalink data transmission process](fig1.png)`
+
+Link-16 数据链传输模型使用 CRC（循环校验码）、RS 编码，以及 CCSK（循环码移位键控）扩频技术，提高数据传输安全性。
+
+**发送时延（Send delay）**：指一个数据帧从第 1 比特到最后 1 比特所经历的时间。
+
+---
+
+## III. 基于 OPNET 的压制式干扰模型（OPNET-BASED SUPPRESSIVE INTERFERENCE MODEL）
+### A. 干扰模型简介
+压制式干扰（Compressive jamming），也称为 jam_pulsed，一般通过发射噪声调制信号来降低接收端对有效信号的处理能力。该干扰可部署为固定节点、移动节点或卫星节点。在脉冲持续时间内，信号源产生并发送数据包。
+
+在 OPNET 平台下建立的压制式干扰器模型如图 2 所示。
+
+> 图 2（占位）：压制式干扰器模型  
+> `![Fig.2 Compressive jammer model](fig2.png)`
+
+该干扰器节点模型由信号源端口、发射机、分组流线与统计线组成，如图 3 所示。
+
+> 图 3（占位）：压制式干扰器节点模型  
+> `![Fig.3 Compressive jammer node model](fig3.png)`
+
+过程模型用于实现各种算法，主要用于刻画节点模型中的处理过程与排队模型。该干扰器过程模型如图 4 所示，包含 4 个有限状态机：
+- **INIT**：仿真初始状态（图中绿色），为强制状态（Forced State），等待满足条件后转移；
+- **WAIT FOR FIRST PULSE**：从 INIT 跳转到该状态，用于等待第一个脉冲到来；
+- **TX_ON**：当满足某脉冲条件，从 WAIT FOR FIRST PULSE 转移到 TX_ON，表示开始干扰；
+- **TX_OFF**：当干扰达到一定效果后，从 TX_ON 转移到 TX_OFF，表示干扰结束或暂停。
+
+> 图 4（占位）：压制式干扰器过程模型  
+> `![Fig.4 Process model of repressive jammer](fig4.png)`
+
+---
+
+### B. 参数说明
+- **Altitude（高度）**：指定干扰器相对于海平面的高度。  
+- **Jammer Bandwidth（干扰器带宽）**：指定发射信道带宽，单位 kHz。  
+- **Jammer transmitter power（干扰器发射功率）**：分配给信道中分组的发射功率，单位 Watt。
+
+压制式干扰器支持的节点类型见表 1。
+
+#### 表 1：压制式干扰器（Suppressive Jammer）支持的节点类型
+$$
+\begin{array}{|c|c|c|c|}
+\hline
+\textbf{节点类型} & \textbf{固定（Fixed）} & \textbf{移动（Mobile）} & \textbf{卫星（Satellite）} \\
+\hline
+\text{默认（Default）} & \text{Wless\_jammer} & \text{Wless\_jammer} & \text{Sat\_jammer} \\
+\hline
+\end{array}
+$$
+
+---
+
+### C. 相关理论介绍
+**信干比（Signal to Interference Ratio, SIR）**：通常以 dB 表示，是在指定条件下有用信号功率与干扰信号加噪声总功率之比。其计算公式为：
+$$
+\rho_i=\frac{P_{si}}{P_{ji}}
+\tag{1}
+$$
+
+在通信过程中若忽略滤波损耗与极化损耗，$P_{si}$ 为通信接收机输入的有用信号功率，$P_{ji}$ 为其干扰功率。两者可计算为：
+$$
+P_{si}=P_t G_t q_{rt}\cdot \Psi_t(R_t)
+\tag{2}
+$$
+$$
+P_{ji}=P_j G_j q_{rj}(\vartheta)\cdot \gamma_j \varphi_j(R_j) B_{rj}
+\tag{3}
+$$
+
+其中：  
+- $P_t$：发射功率；$G_t$：发射机增益；  
+- $q_{rt}$：接收天线在发射机方向上的增益；  
+- $R_t$：收发距离；$\Psi_t(R_t)$：传播损耗；  
+- $q_{rj}(\vartheta)$：接收天线在干扰源方向上的增益（与方向角 $\vartheta$ 有关）；  
+- $\gamma_j$：干扰极化损耗；$\varphi_j(R_j)$：传播损耗；  
+- $B_{rj}$：进入接收机的干扰功率占比。
+
+**信噪比（SNR）**：为比值，常用分贝（dB）表达。文中给出：
+$$
+N_{dB}=10\lg\frac{P_s}{P_n}
+\tag{4}
+$$
+$$
+SNR=10\lg\frac{P_s}{P_n}
+\tag{5}
+$$
+其中 $P_s$ 表示发射信号功率，$P_n$ 表示传输中的噪声功率，$\lg$ 为以 10 为底的对数。
+
+在本文中信号功率已知，可由给定的 SNR 计算噪声功率：
+$$
+P_n=\frac{p_n}{10^{SNR/10}}
+\tag{6}
+$$
+
+假设数字信号序列 $x(n)$ 长度为 $N$，其功率为：
+$$
+P=\frac{\sum_{n=0}^{N-1}X(n)^2}{N}
+\tag{7}
+$$
+
+---
+
+### D. 仿真实现
+在 OPNET 平台下设计的数据链无人机通信干扰模型如图 5 所示。
+
+> 图 5（占位）：数据链无人机通信干扰模型  
+> `![Fig.5 Datalink UAV communication jamming model](fig5.png)`
+
+该场景为基于 Link-16 数据链的无中心 TDMA 组网场景，模拟陆基飞机与海上飞机之间的空中通信。网络规模为 7 个节点，无中心节点，节点之间彼此通信。
+
+利用 OPNET 的三层建模机制与分层建模思想，无人机通信建模可分为**节点子模型**与**过程子模型**。节点层为网络层的节点内部仿真功能提供资源；通过节点编辑器与过程编辑器配置参数定义模块功能；节点模型由多个具有不同功能的模块组合而成。节点层分层结构与 OSI 分层思想类似，可用于表示网络传输过程。
+
+节点模型由收发机、发射机、分组流线与统计线组成，其中 Link-16MAC 为核心模块。节点模型如图 6 所示，过程模型如图 7 所示。
+
+> 图 6（占位）：数据链无人机节点模型图  
+> `![Fig.6 Node model diagram of the datalink drone](fig6.png)`
+
+> 图 7（占位）：数据链无人机过程模型图  
+> `![Fig.7 Process model diagram of the datalink drone](fig7.png)`
+
+过程模型用于实现各种算法，主要用于刻画节点模型的处理与排队过程。模型包含两类状态：绿色为强制状态（Forced State），红色为非强制状态（Unforced States）。
+
+- **强制状态**：当 OPNET 内核调用过程模型时，若当前为强制状态，则依次执行 entry code 与 leave code，判断转移条件后直接跳转执行目标状态 entry code；跳转通过标签与 `goto` 实现，整个过程不离开过程函数。  
+- **非强制状态**：当 OPNET 内核调用过程模型时，若当前为非强制状态，先执行 entry code，然后将下一次状态设为该状态的 leave code，并 `return` 等待下次调用；下次调用时从 leave code 执行后判断条件并跳转到目标状态 entry code；跳转同样通过标签与 `goto` 实现。
+
+该过程模型包含 6 个有限状态机，其含义如下：
+- **WAIT INIT**：仿真初始状态；  
+- **INIT1**：当仿真条件满足 `TimeSlotMapInitFlag` 时跳转到 INIT1；  
+- **Register**：分配 Link-16 数据链无线电 MAC 地址并获取各类过程信息；  
+- **Disable**：用于获取中断类型与中断代码；  
+- **Start**：设置下一状态中断条件；  
+- **Idle**：包含多个跳转条件，是该过程模型的最后一个状态机。
+
+---
+
+## 参数设置
+Link-16 数据链参数设置如表 2 所示。
+
+#### 表 2：数据链参数设置（DATALINK PARAMETER SETTINGS）
+$$
+\begin{array}{|l|l|}
+\hline
+\textbf{参数（Parameter）} & \textbf{取值（Value）} \\
+\hline
+\text{工作状态（Working state）} & \text{on} \\
+\hline
+\text{工作频段（MHz）} & 960 \\
+\hline
+\text{带宽（kHz）} & 10 \\
+\hline
+\text{发射功率（W）} & 100.0 \\
+\hline
+\text{数据率（bps）} & 384\,\text{kbps} \\
+\hline
+\text{接收灵敏度（dBm）} & -100 \\
+\hline
+\text{消息缓存大小（packets）} & 100 \\
+\hline
+\text{最大传输距离（km）} & \text{No limit} \\
+\hline
+\end{array}
+$$
+
+文中描述：在 Link-16 数据链下，无人机工作频段 960 MHz、带宽 10 kHz、发射功率 100 W、传输速率 384 kbps、接收灵敏度 -100 dBm、缓存 100 packets，最大传输距离描述为 60 km（文中表述与表格存在不一致，按原文原样保留）。
+
+干扰器参数设置：高度 0 m、工作频段 960 MHz、带宽 10 kHz、发射功率 100 W、脉冲宽度 1 Mbps（原文表述）。参数见表 3。
+
+#### 表 3：干扰源参数设置（INTERFERER PARAMETER SETTINGS）
+$$
+\begin{array}{|l|l|}
+\hline
+\textbf{参数（Parameters）} & \textbf{取值（Value）} \\
+\hline
+\text{高度（altitude）} & 0.0 \\
+\hline
+\text{工作频段（MHz）} & 960 \\
+\hline
+\text{带宽（kHz）} & 10 \\
+\hline
+\text{发射功率（W）} & 100.0 \\
+\hline
+\text{脉冲宽度（Pulse width）} & 1.0 \\
+\hline
+\end{array}
+$$
+
+仿真时长为 1 小时。仿真收集三种数据链的吞吐量、时延（Media Access Delay）、分组发送速率与分组接收速率，并进行对比以得出 Link-16 数据链具有较强抗干扰能力及更优网络性能。
+
+---
+
+## 仿真结果与分析
+### 1）媒体接入时延（Media Access Delay）
+图 8 中蓝、红、绿曲线分别表示干扰状态下 Link-11、Link-22 与 Link-16 数据链的时延数据。结果表明：  
+- Link-16 时延最小且接近 0；  
+- Link-11 时延约为 0–1 s；  
+- Link-22 时延约为 0–18 s。
+
+> 图 8（占位）：端到端时延仿真结果  
+> `![Fig.8 End-to-end delay simulation results](fig8.png)`
+
+### 2）接收业务（Traffic Received）
+图 9 中蓝、红、绿数据分别表示干扰状态下 Link-16、Link-11 与 Link-22 的分组接收情况。
+
+> 图 9（占位）：各节点分组接收速率仿真结果  
+> `![Fig.9 Packet rate simulation results for each node](fig9.png)`
+
+### 3）发送业务（Traffic Sent）
+图 10 中红、绿、蓝数据分别表示干扰状态下 Link-16、Link-11 与 Link-22 的分组发送计数/速率结果（按原文描述保留）。
+
+> 图 10（占位）：各节点分组发送仿真结果  
+> `![Fig.10 Simulation results of packet transmission by node](fig10.png)`
+
+---
+
+## IV. 结论
+本文阐述了数据链通信相关理论，介绍了数据链的数据传输方式，并通过计算机仿真手段模拟数据链通信的基本过程，采用一定技术手段并得到相关结论。
+
+本文基于 OPNET 仿真平台设计并实现了 Link-16、Link-11 与 Link-22 数据链下的无人机通信干扰仿真，为研究 Link-16 数据链抗干扰奠定了基础。同时，本文完成了多条数据链的多项网络性能参数获取与对比分析，完成了各数据链抗干扰研究，并结合仿真结果说明 Link-16 数据链性能：可以看出 Link-16 的网络性能受干扰影响最小，其抗干扰性能显著优于 Link-11 与 Link-22。Link-16 在抗干扰通信方面具有良好潜力，为未来数据链抗干扰研究打下基础。
+
+---
+
+## 参考文献
+[1] Zhao W D, Zhang L. *Tactical datalink* [M]. Beijing: Tsinghua University Press, 2019: 1–29.  
+[2] Li, Linlin, Wei, Zhenhua. *Datalink technology and applications* [M]. Xi’an: Northwestern Polytechnical University Press, 2015: 10–26.  
+[3] Luo Guangming, Yang Bin, Qiu Zhihe, et al. *Data link - a shortcut for connecting information systems to weapon systems* [M]. Beijing: National Defense Industry Press, 2008: 40–54.  
+[4] Zhao Zhiyong, Mao Zhongyang, Zhang Song, et al. *Datalink systems and technologies* [M]. Beijing: Electronic Industry Publishing House, 2014: 51–69.  
+[5] Nuti G, Jiménez Rugama L A, Cross A I. “An Explainable Bayesian Decision Tree Algorithm” [J]. *Frontiers in Applied Mathematics and Statistics*, 2021, 7: 3.  
+[6] Jie Z, Lizhi Q, Wenjian H, et al. “Simulation and Verification of Jamming Performance of Suspended Projectile-Carried Communication Jammer for Frequency Hopping Radio with Typical Modulation Mode” [C]. *IEEE ICCT*, Xi’an, China, 2019: 1231–1235.  
+[7] Chen Y, Yang X, Yang J. “Research on Jamming Method of Tactical Internet Ultra short Wave Communication based on VRNET Simulation” [C]. *IEEE ITOEC*, Chongqing, China, 2018: 918–920.  
+[8] Y. Kim, G. Kim and D. Yoon. “Estimation of Convolutional Interleaver in a Non-cooperative Context” [C]. *ICACT*, Nanjing, China, 2020: 228–230.  
+[9] Liu Q, Wang Y, Guo J, et al. “A Recognition Algorithm for Signal Modulation Modes of Tactical Data Link” [C]. *CTISC*, Shanghai, China, 2021: 215–220.  
+[10] Liu Y, Liu Y, Yang C. “Modulation recognition with graph convolutional network” [J]. *IEEE Wireless Communications Letters*, 2020, 9(5): 624–627.  
+[11] Qian L, Zhang J, Chen D. “Simulation Method of Jamming Performance of Projectile-Carried Communication Jammer Based on OPNET Platform” [C]. *International Conference on Man Machine-Environment System Engineering*, Singapore, 2019: 445–451.  
+[12] Jiang G, Yuan H. “Analyzing DME Interference on JTIDS in the Time Domain” [C]. *IEEE ICET*, Chengdu, 2019: 137–139.  
+[13] Suryana J, Candra D. “Implementation of Link-16 based Tactical Data Link System Using Software-Defined Radio” [C]. *ICEEI*, Sanya, China, 2019: 555–559.

@@ -1,0 +1,277 @@
+# 数据链网络中一种新的分层多粒度跨域编址方法  
+**A New Hierarchical Multi-granularity Cross-domain Addressing Approach in Datalink Networks**
+
+Chunfeng Li，Zhenlei Wang，Xiongjun Wu  
+
+1) 中国电子科技集团公司第54研究所（CETC54），网络与通信总体部，石家庄 050081  
+E-mail: zhenlei_wang@foxmail.com  
+2) 中国航天科技集团有限公司第八研究院 上海航天技术研究院802所，散射与辐射国家重点实验室，上海 201109  
+E-mail: wuxiongjun@alumni.sjtu.edu.cn  
+
+收录：Proceedings of the 14th Asian Control Conference (ASCC 2024)  
+时间地点：2024年7月5–8日，中国大连
+
+---
+
+## 摘要
+本文提出一种用于数据链网络的**分层多粒度跨域编址**新方法。该多粒度跨域编址模式旨在克服传统**固定长度编址模式**在容量与灵活性方面的局限：传统数据链主要完成单一数据链内部成员之间的编址，不同数据链之间难以交换消息；同时固定长度编址限制了数据链成员数量。
+
+本文的新编址模式由三段组成：**网络段地址、节点段地址、载荷段地址**。该模式能够满足自适应与高效编址需求；此外还综合考虑了**快速编址、网络容量**以及与传统数据链的**兼容性**。为支持该新模式，本文专门设计了相应的编址协议。针对数据链网络与多粒度跨域编址模式的特点，提出**分段编址**机制。路由方面，采用改进的 **OLSR** 路由协议处理网络段与节点段地址：通过增强 **HELLO** 消息与 **TC** 消息，以及它们的处理方法，使其满足该编址模式需求。MPR 节点使用贪心算法计算，整个网络路由通过 Dijkstra 算法确定。另一方面，在每个节点内部，完成载荷段地址分配，并将接收数据分发到相应载荷。
+
+本文使用 Exata 软件进行验证：平均时延为 **0.0583 s**，吞吐量为 **3842.63 bit/s**。与美军 LINK4A（5000 bit/s）与 LINK11（2250 bit/s）的吞吐量相比，该设计可实现更好的性能，更能满足数据链应用需求。结果表明该方法能够满足数据链应用的多种需求。
+
+**关键词**：多粒度；编址模式；编址系统；数据链；链路状态路由协议
+
+---
+
+## 1 引言
+数据链最初用于在传感器、指挥系统与武器平台之间建立**时空一致的信息链路**，以高效传输、自动识别、实时处理并快速响应与作战应用功能直接对应的格式化消息，从而实现端到端互操作与机器间相互理解。自20世纪50年代中后期以来，美军发展了多种数据链系统，包括 Link-4、Link-11、Link-16、Link-22、战术目标指示网络技术（TTNT）、战术通用数据链（CDL）、多平台通用数据链（MP-CDL）、先进多功能数据链（MADL）等。
+
+这些数据链在战场上发挥了巨大作用，但很少有单一数据链能够同时满足多任务下不同信息的传输与交换需求，而且各数据链并非都能互联。为连接不同数据链平台并快速实现信息共享，美军提出**数据链网关**概念，意在综合多链路优势、提升抗毁性并促进用户互联。目前美军发展的网关方案主要包括战场空中通信节点（BACN）。BACN 支持 Dynamic Awareness Data Link（SADL）、Link-16、TTNT 的 IP 网络以及战术通用数据链的接入。
+
+然而，由于工程实现上的技术困难与挑战，关于“如何实现链路互联”的关键技术公开资料仍较少，距离实际应用需求仍有差距；对许多国家而言，数据链网关相关研究也相对有限。
+
+为克服上述困难，本文针对传统数据链固定长度编址方法在容量与灵活性方面的限制，设计一种适用于数据链网络的**分层多粒度跨域编址方法**；并基于该编址方法设计相应路由协议以实现多链路互联，为通过网关实现多数据链互联互通提供参考。本文给出多个典型示例并验证方法有效性。
+
+本文主要贡献包括：
+1) 改进 OLSR 路由协议并将其应用到数据链领域；  
+2) 提供多数据链、多成员之间的跨网络编址解决方案；  
+3) 提供多数据链成员设备之间编址方案；  
+4) 完成编址方案设计并进行仿真验证。
+
+> 资助信息（原文）：国家自然科学基金（61973215、62022055、61603250、62073158）；国家工业科技创新项目 23-TQ01-04-ZT-01-016。通讯作者：Xiongjun Wu。
+
+---
+
+## 2 编址设计（Addressed Design）
+鉴于传统数据链固定长度编址设计（如 JTIDS 数据链 15 位编址）在容量与灵活性上的限制，本文提出一种数据链网络的**分层多粒度跨域编址方法**，即**分段可变长度编址**方法，以满足自适应与高效编址需求。设计同时考虑：
+- 快速编址需求  
+- 网络容量需求  
+- 与传统数据链的兼容性
+
+### 2.1 多粒度分段编址示例
+一种典型的多粒度编址结构如图 1 所示。网络层地址为 **4 字节 / 32 位**，由三段组成：
+- **网络段（network segment）**：10 位，表示某一时刻激活的子网编号范围为 0–1023。地址 0 表示未加入任何网络。
+- **节点段（node segment）**：12 位，表示子网内参与成员的地址范围为 0–4095。地址 0 表示未分配地址。
+- **载荷段（payload segment）**：10 位，表示成员内部设备地址范围为 1–1023，地址 0 预留。
+
+为兼容传统数据链，应用层使用 **15 位地址**表示成员平台识别号（唯一）。
+
+> 图 1（占位）：数据链网络分段可变长度编址示例  
+> `![图1：分段可变长度编址示例](fig1.png)`
+
+为了便于演示与分析，本文用“十进制 + 点分隔”的形式表示地址：  
+**网络段.节点段.载荷段**。例如：`1.5.3` 表示网络号 1、节点号 5、载荷号 3。  
+网关节点可能位于多个子网，因此会具有多个地址，但载荷地址相同。例如网关 A 可表示为 `1.2` 与 `2.6`（表示同一网关）；`1.2.3` 与 `2.6.3` 表示同一设备。
+
+> 图 2（占位）：网络拓扑与编址示例  
+> `![图2：网络拓扑与编址示例](fig2.png)`
+
+为适配该编址方法，本文基于 OLSR 协议对消息格式与处理流程进行改进。
+
+---
+
+## 3 路由设计（Routing Design）
+
+### 3.1 OLSR 协议简介
+OLSR 是一种基于经典链路状态算法改进的**主动式路由协议**。OLSR 包含两类消息：
+- **HELLO 消息**：一跳广播。节点接收邻居的 HELLO 后可获知一跳邻居；若 HELLO 中携带邻居信息，则可获得两跳邻居。
+- **TC（Topology Control）消息**：用于网络范围拓扑扩散。
+
+OLSR 从一跳邻居中选择部分节点，使其能覆盖全部两跳邻居，这些节点称为**多点中继（MPR）**。MPR 节点发送 TC 消息并通过 MPR 扩散，避免全网洪泛并减少控制信息开销。最终用 Dijkstra 算法计算全网路由。
+
+### 3.2 改进的 OLSR 协议
+为支持本文的分层多粒度跨域编址方法，本文设计了对应的编址协议，采用**分段编址**方式。改进后的 OLSR 用于在网关节点间完成路由编址：每个网关节点收集当前子网内成员地址并加入 HELLO 消息，以便完成网关内部成员编址；在找到目的节点后，再在节点内部完成载荷编址。
+
+OLSR 的关键组件包括：HELLO/TC 消息、MPR 选择算法、消息接收后的处理流程、路由计算算法。为适配本文编址方法，需要修改 HELLO、TC 的内容与处理流程。MPR 选择采用贪心算法，路由计算采用 Dijkstra 算法。
+
+---
+
+### 3.2.1 HELLO 消息改进与处理
+#### （1）传统 OLSR 的 HELLO 消息格式
+传统 HELLO 消息格式如图 3 所示。各字段含义如下：
+- Reserved：保留字段，置 0  
+- Sending interval：发送间隔  
+- Forwarding willingness：转发意愿（MPR 选择参考之一）  
+  - WILL_DEFAULT：默认  
+  - WILL_NEVER：不转发其他节点数据  
+  - WILL_ALWAYS：总是转发其他节点数据  
+- Link encoding：链路编码（由“相邻节点类型 + 链路类型”两部分组成）  
+  - 相邻节点类型示例：  
+    - SYM_NEIGH：至少存在一条对称链路  
+    - MPR_NEIGH：在 SYM_NEIGH 基础上被选为 MPR  
+    - NOT_NEIGH：不存在对称链路  
+- Link message length：链路消息长度（最小单位为字节）  
+- Neighbor node interface address：邻居节点接口地址
+
+> 图 3（占位）：传统 HELLO 消息格式  
+> `![图3：HELLO 消息格式](fig3.png)`
+
+链路编码结构如图 4 所示，可抽象为如下位域：
+- Adjacent node type：2 bits  
+- Link type：2 bits  
+其余位为 0/保留位。
+
+> 图 4（占位）：链路编码结构  
+> `![图4：链路编码结构](fig4.png)`
+
+#### （2）改进后的 HELLO 消息格式
+改进后的 HELLO 消息分为两部分：
+- **本节点网关信息（Local gateway information）**
+- **邻居网关信息（Neighbor gateway information）**
+
+两部分信息结构相似：均包含“该网关参与的子网数量”以及“每个子网内的节点地址集合”。
+
+改进后的格式示例（对应图 5/图 6）可概括为：
+
+- 保留字段、发送间隔、转发意愿（同传统）
+- Local gateway information：
+  - 子网数量：2 bit（例如 n）
+  - 对每个子网 $a_i$：
+    - 子网号 $a_i$：10 bit
+    - 子网内节点数量 $m_i$：12 bit（某些图示版本会显式带出）
+    - 节点号列表：12 bit × $m_i$（第一个通常表示本节点在该子网内的地址）
+- Neighbor gateway information：若干段，结构同上
+
+> 图 5（占位）：改进 HELLO 消息格式（a）  
+> `![图5：改进 HELLO 消息格式（a）](fig5.png)`
+
+> 图 6（占位）：改进 HELLO 消息格式（b）  
+> `![图6：改进 HELLO 消息格式（b）](fig6.png)`
+
+**处理流程（概述）**：  
+每个节点接收改进后的 HELLO 消息后，会记录邻居网关信息、链路信息与两跳邻居网关信息，并从邻居网关中选择能够连接所有两跳邻居的网关作为 MPR 节点。
+
+---
+
+### 3.2.2 TC 消息改进与处理
+#### （1）传统 OLSR 的 TC 消息格式
+传统 TC 消息格式如图 7 所示，可视为 MPR Selector 集合，包含：
+- 广播序列号（16 bit）
+- Reserved（16 bit）
+- Advertised Neighbor Main Address（32 bit）重复若干次
+
+> 图 7（占位）：TC 包格式  
+> `![图7：TC 包格式](fig7.png)`
+
+#### （2）改进后的 TC 消息格式
+改进后的 TC 消息除广播序列号与保留字段外，还包含：
+- Local gateway information（本节点网关信息）
+- MPR SELECTOR information（MPR 选择器信息集合）
+
+可抽象为：
+- Serial number（16 bit）+ Reserved（16 bit）
+- Local gateway information：
+  - 子网数量（2 bit）
+  - 对每个子网：子网号（10 bit）+ 节点号（12 bit）
+- 对每个 MPR SELECTOR：
+  - 其参与子网数量（2 bit）
+  - 对每个子网：子网号（10 bit）+ 节点号（12 bit）
+
+> 图 8（占位）：改进 TC 包格式  
+> `![图8：改进 TC 包格式](fig8.png)`
+
+**处理流程（概述）**：  
+节点接收并存储改进后的 TC 消息；基于一跳/两跳邻居网关信息以及接收的全网 TC 消息，使用 Dijkstra 算法计算全网路由。
+
+---
+
+### 3.2.3 MPR 节点选择
+本质上，MPR 节点选择是一个 **NP-hard** 问题。当节点规模较大时，很难在有效时间内得到最优解。本文在网关节点之间采用**贪心算法**寻找次优解。
+
+示例说明（对应图 9）：  
+1) 若存在唯一的一跳节点能够到达某两跳节点，则选择该一跳节点作为 MPR（例如网关 1.5–2.6）。  
+2) 否则选择“一跳可达性（可覆盖的两跳节点数量）”最大的网关作为 MPR。例如网关 1.10–17.7 的可达性为 4，网关 1.9–6.2 的可达性为 2，则选 1.10–17.7。若可达性相同，则随机选取一个。
+
+> 图 9（占位）：网关连接拓扑示意  
+> `![图9：网关连接拓扑](fig9.png)`
+
+---
+
+### 3.2.4 路由计算
+在 TC 消息内容中，将 **MPR SELECTOR 集合**作为“上一跳地址集合”，将“本网关信息”作为“目的地址”。每个网关节点基于自身的一跳/两跳邻居网关信息以及接收的 TC 消息，采用 **Dijkstra 算法**计算全网路由表，并以**跳数**作为度量值。
+
+---
+
+## 4 性能分析（Performance Analysis）
+本文使用 Exata 软件验证改进编址方案。网络拓扑与参数设置见图 10–图 12。路由参数设置如下：
+- HELLO 消息发送间隔：2 s  
+- TC 消息发送间隔：5 s  
+- 邻居路由表失效间隔：6 s  
+- TC 消息失效间隔：15 s  
+
+> 图 10（占位）：网络拓扑示意图  
+> `![图10：网络拓扑示意图](fig10.png)`
+
+> 图 11（占位）：协议参数设置  
+> `![图11：协议参数设置](fig11.png)`
+
+> 图 12（占位）：业务参数设置  
+> `![图12：业务参数设置](fig12.png)`
+
+仿真结果见图 13–图 15。计算得到：
+- 平均时延：$0.0583\,\text{s}$  
+- 吞吐量：$3842.63\,\text{bit/s}$  
+该结果可满足数据链应用需求。
+
+> 图 13（占位）：发送消息结果  
+> `![图13：发送消息结果](fig13.png)`
+
+> 图 14（占位）：接收消息吞吐量  
+> `![图14：接收消息吞吐量](fig14.png)`
+
+> 图 15（占位）：端到端时延  
+> `![图15：端到端时延](fig15.png)`
+
+### 表 1：Link 4 性能（原文表）
+$$
+\begin{array}{|c|c|c|c|}
+\hline
+\textbf{name} & \textbf{Bandwidth} & \textbf{WorkMode} & \textbf{transmission\ speed} \\
+\hline
+\text{LINK-4}  & \text{UHF} & \text{half-duplex time division multiplexing} & 1200/600/300\ \text{(bps)} \\
+\hline
+\text{LINK-4A} & \text{UHF} & \text{half-duplex time division multiplexing} & 5\ \text{kbops} \\
+\hline
+\text{LINK-4C} & \text{UHF} & \text{half-duplex time division multiplexing} & 5\ \text{kbops} \\
+\hline
+\end{array}
+$$
+
+### 表 2：Link 11 性能（原文表）
+$$
+\begin{array}{|c|c|c|c|}
+\hline
+\textbf{name} & \textbf{Bandwidth} & \textbf{WorkMode} & \textbf{transmission\ speed} \\
+\hline
+\text{LINK-11} & \text{HF}  & \text{beyond-line-of-sight} & 1200\ \text{bps} / 2250\ \text{bps} \\
+\hline
+\text{LINK-11} & \text{UHF} & \text{Line of sight} & 1200\ \text{bps} / 2250\ \text{bps} \\
+\hline
+\end{array}
+$$
+
+---
+
+## 5 结论（Conclusion）
+传统数据链只能在单一数据链成员之间通信，无法在多个数据链成员之间通信；并且传统数据链采用固定长度编址模式，成员数量受限。传统数据链也只能完成节点成员之间的消息通信，无法完成“某成员的某个载荷”与“其他成员载荷”之间通信，更难实现不同数据链成员载荷之间的消息通信。
+
+本文提出的分层多粒度跨域编址方法解决了上述问题：设计了多数据链之间、多数据链成员之间以及多数据链成员设备之间的编址方法与编址模式；并通过改进 OLSR 路由协议（包括改进 HELLO、TC 消息格式等）实现多数据链间的编址。通过仿真，平均时延为 0.0583 s、吞吐量为 3842.63 bit/s。与美军 LINK4A（5000 bit/s）与 LINK11（2250 bit/s）的吞吐量相比，本文方法可获得更好的设计结果并满足数据链应用需求。
+
+---
+
+## 参考文献（References）
+[1] W. Tian, C. Chen and L. Zhao, “Modeling and Interoperability Testing of Data Link Based on DEVS,” *IEEE 3rd ICEJCT*, Shenzhen, China, 2020: 268–272.  
+[2] P. Zhou, F. Li, K. Zhang and C. Guo, “MBSE and the Concept Model of the IoT-Based Data Link System Designing Method,” *IEEE 5th ICEJCT*, Hefei, China, 2022: 42–47.  
+[3] S. Ren, D. Li, Q. Hu, Y. Liu and J. Liu, “An Improved Security OLSR Protocol against Black Hole Attack based on FANET,” *13th ASCC*, Jeju, Korea, 2022: 383–388.  
+[4] Z. Guo and Z. Yan, “Dynamic MAC Protocol for Tactical Data Links,” *IEEE CIT*, Helsinki, Finland, 2017: 87–92.  
+[5] L. Chen, C. Chen and L. Zhao, “Objective Measurement Method for the Confidence of Track Quality and Effectiveness Evaluation of Tactical Data Link,” *IEEE 5th ICEJCT*, Hefei, China, 2022: 36–41.  
+[6] S. Liu, F. Gao, W. Shi and S. Yin, “Simulation and analysis of polling multiple access system for tactical data link by Matlab Stateflow modeling,” *Int. Conf. on Computer Design and Applications*, Qinhuangdao, China, 2010: V4-274–V4-277.  
+[7] N. Zhong, Z.-w. He, J.-m. Kuang and Z.-h. Zhuo, “A Kind of Survivability Evaluation Technique for Tactical Data Link Network,” *WRI World Congress on CS &CE, Los Angeles*, USA, 2009: 349–353.  
+[8] H. Lee, B. P. Zeigler and Doohwan Kim, “A DEVS-based framework for simulation optimization: Case study of Link-11 gateway parameter tuning,” *IEEE MILCOM*, San Diego, CA, USA, 2008: 1–7.  
+[9] L. Liu, Y. Fu, Q. Li, Y. Lu, Z. Cao and Y. Chen, “Anti-jamming Research of UAV Communication Based on Link-16 Datalink,” *ICCNEA*, Xi’an, China, 2023: 157–161.  
+[10] L. Wang, W. Xue and W. Luo, “Model analysis of Link-16 based on Global Grid Reference Model,” *Proc. 2011 Int. Conf. on CS and Network Tech.*, Harbin, China, 2011: 910–913.  
+[11] A. Kotlowski and S. Grob, “Potential of the fixed frequency HF communication medium in the upgrading NATO Tactical Data Link 22,” *10th IET IRST 2006*, London, UK, 2006: 43–48.  
+[12] L. Zhang, “A TTNT System Simulation Method Based on OPNET and Matlab,” *8th ICSP*, Xi’an, China, 2023: 562–569.  
+[13] S. Ramlall, L. Gutierrez, M. Cayetano and S. McGehee, “A Modular Approach to the Automated Testing of Common Data Link Terminals,” *IEEE AUTOTESTCON*, National Harbor, MD, USA, 2022: 1–6.  
+[14] C. Wallshein, “Tactical Data Link Gateways Introduction,” 1999: 2–5.

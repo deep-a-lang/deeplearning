@@ -1,0 +1,700 @@
+# 相干快速跳频的精同步方法（A Fine Synchronization Method for Coherent Fast Frequency Hopping）
+
+## 论文信息
+
+- 期刊：China Communications  
+- 年份/卷期/页码：2023, 20(10): 163–184  
+- DOI：10.23919/JCC.fa.2022-0599.202310  
+- 作者：Xuanhe Yang，Weike Zhang，Shixun Luo，Chang Li，Xiaqing Miao（通讯作者），Aihua Wang  
+- 单位：  
+  1）北京理工大学 信息与电子学院，北京 100081，中国  
+  2）中国人民解放军 96901 部队，北京 100000，中国  
+  3）北京理工大学 网络空间科学与技术学院，北京 100081，中国  
+- 通讯作者邮箱：xqmiao@bit.edu.cn  
+- 关键词：快速跳频（FFH）；扩频通信；精同步  
+- 收稿：2022-08-12；修回：2022-09-19  
+
+---
+
+## 摘要
+
+相干快速跳频（CFFH）因其良好的抗干扰性能以及“可进行相干合并”的能力而受到越来越多关注。然而，与传统的非相干快速跳频相比，CFFH 对系统同步精度提出了更高要求。本文提出一种新的 CFFH 精同步算法，由两个阶段组成：**开环阶段**与**闭环阶段**。
+
+在开环阶段，提出一种**基于网格搜索的参数估计方法**。在闭环阶段，构建一种**完全相干的锁相环（PLL）**以及一种带**译码反馈结构**的**延迟锁定环（DLL）**，分别用于进一步精细估计系统的**时钟偏斜**与**时延**。此外，本文分析搜索参数设置对估计误差的影响，并推导闭环阶段稳态估计的均方根误差（RMSE）。最后通过仿真，将 RMSE 与相应的 Cramer–Rao 下界（CRLB）以及传统码环估计性能对比，以验证所提方法的有效性。
+
+---
+
+# I. 引言（INTRODUCTION）
+
+快速跳频（FFH）作为最重要的物理层安全传输技术之一，以其显著的低截获概率（LPI）与抗干扰能力，在大量应用中被广泛采用。传统 FFH 系统为简化实现，通常采用非相干调制与跳级非相干合并。但当频率分集度增大时，每一跳的信噪比（SNR）会下降，同时跳级非相干合并损失会快速增加，最终显著恶化接收灵敏度。因此，“为了抗干扰追求更大的分集增益”与“低 SNR 下需要更高接收灵敏度”之间形成明显权衡，限制了 FFH 的应用范围。
+
+相较于非相干 FFH，Milstein 在 1990 年代提出相干 FFH（CFFH）体制：信号在跳与跳之间保持相干载波相位，接收机可对多频通道进行相干合并。近年来，得益于直接数字频率合成（DDS）芯片快速发展以及新型信道估计方法出现，CFFH 再次受到关注，并在测控（TT&C）、无人作战飞机（UCAV）蜂群、工业物联网（IIoT）等场景中探索应用。
+
+要实现成功跳频，发射机与接收机必须紧密同步，尤其在 FFH 系统中更是关键。与传统非相干 FFH 相比，CFFH 因“跨多频通道相干合并”的需求，对时延与频偏估计精度提出更严苛要求。一般而言，跳频系统同步分两阶段：**粗同步**与**精同步**。粗同步通常完成跳频图案同步与粗略时延/频偏估计；精同步则在粗同步基础上进一步精确估计残余的时延、频偏/时钟偏斜与载波相位。
+
+精同步算法可分为**开环**与**闭环**两类：开环估计速度快但精度与跟踪能力较差；闭环精度高且能跟踪参数变化，但收敛时间往往较长。已有研究多针对粗同步或特定混合体制（如 CFFH/DS），而对“一个符号内多跳”的 CFFH 精同步，尤其是能同时处理时钟偏斜导致的频偏并实现高精度时延跟踪的方案仍不足。
+
+为此，本文提出“两阶段精同步方案”：  
+1）**开环网格搜索**快速给出高质量初值；  
+2）**闭环 PLL + DLL**进一步跟踪时钟偏斜与时延，并推导稳态 RMSE，与 CRLB 及传统方案对比验证。
+
+---
+
+# II. 系统模型（SYSTEM MODEL）
+
+> 说明：原文在该节给出 CFFH 的频率集合、跳频映射、含时钟偏斜与时延的接收信号模型，以及粗同步后的“等效观测模型”。这里在不改变符号含义的前提下，用更适合 Markdown 的方式重新排版。
+
+---
+
+## II-A. 频率集合与跳频映射
+
+考虑一个 CFFH 系统，系统共有 $K$ 个可用频率通道（且 $K \gg 1$），采用零中频（ZIP）设计。用向量表示频率集合：
+
+$$
+\mathbf{f}_M=[f_1,f_2,\ldots,f_k,\ldots,f_K]^T\in\mathbb{R}^{K\times 1}.
+\qquad (1)
+$$
+
+为满足“零中频”（频率集合以 0 为中心、等间隔分布），常用设定为：
+
+$$
+f_k = f_1 + (k-1)\Delta f,\quad
+f_1 + \frac{K-1}{2}\Delta f = 0.
+$$
+
+对第 $u$ 个符号，其跳频图案（按跳编号排列）记为：
+
+$$
+\mathbf{f}^{(u)}=[f^{(u)}_1,f^{(u)}_2,\ldots,f^{(u)}_K]^T\in\mathbb{R}^{K\times 1},
+$$
+
+它是 $\mathbf{f}_M$ 的一个随机排列。定义映射函数 $\Psi_u(k)$ 表示“从集合 $\mathbf{f}_M$ 取元素并映射到第 $u$ 个符号第 $k$ 跳频率”的规则，则：
+
+$$
+\mathbf{f}_M \xrightarrow{\Psi_u} \mathbf{f}^{(u)},\qquad
+[\mathbf{f}_M]_{\Psi_u(k)} = f^{(u)}_k.
+\qquad (2)
+$$
+
+相应地，$\Psi_u^{-1}(k)$ 表示反向映射（用于“去跳频”时定位该跳对应的原集合索引）。
+
+---
+
+## II-B. 含时钟偏斜与时延的接收信号
+
+假设存在时钟偏斜，但收发双方无相对运动（忽略多普勒），信道为平坦衰落。令 $\varepsilon$ 为时钟偏斜系数，传播时延为 $\tau$，初始相位为 $\phi_0$，中心射频为 $f_c$，第 $u$ 个符号的数据为 $b(u)\in\{+1,-1\}$，跳驻留时间 $T_h$，符号时长 $T_s=K T_h$。则含时钟偏斜的接收信号可表示为（原文式 (3) 的等价排版）：
+
+$$
+s_{\mathrm{CFFH}}(t)=
+\sum_{u=1}^{U}\sum_{k=1}^{K}
+A\,b(u)\cos\!\Big(2\pi\big(f_c+f_k^{(u)}\big)\big(t+\varepsilon t+\tau\big)+\phi_0\Big)\,
+g_{T_h}\big((1+\varepsilon)t-(k-1)T_h\big)*\delta\big((1+\varepsilon)t-(u-1)T_s\big).
+\qquad (3)
+$$
+
+其中 $A$ 表示接收信号幅度，$g_{T_h}(\cdot)$ 表示长度为 $T_h$ 的跳脉冲成形/门控函数（原文使用 $g_{T_h}$ 与卷积符号表达）。
+
+---
+
+## II-C. 接收机处理与粗同步后的等效观测
+
+粗同步阶段可得到时钟偏斜的估计值 $\hat{\varepsilon}$。令其误差为：
+
+$$
+\mu=\varepsilon-\hat{\varepsilon},
+$$
+
+即 $\mu$ 表示“粗同步后残余的时钟偏斜误差（或与之等效的频偏参数）”。
+
+接收机对第 $u$ 个符号的第 $k$ 跳，进行：RF 下变频、去跳频、匹配滤波、抽取与幅度归一化等处理后，得到每跳的复数基带输出（原文式 (4) 的等价排版）：
+
+$$
+r_k^{(u)} = b(u)\,h_{u,k}(\tau,\mu)\,
+e^{-j2\pi(f_c+f_k^{(u)})(kT_h+uT_s)\mu}\,
+e^{-j2\pi(f_c+f_k^{(u)})(\tau+kT_h+uT_s)}\,e^{-j\phi_0}.
+\qquad (4)
+$$
+
+其中 $h_{u,k}(\tau,\mu)$ 表示每跳相关接收（含时延与残余时钟偏斜误差影响）后的等效复增益。原文给出其形式（原文式 (6) 一类表达），可概括为：
+
+$$
+h_{u,k}(\tau,\mu)
+=
+A\left(1-\frac{|\tau|}{T_h}\right)
+\sinc\!\Big((f_c+f_k^{(u)})\mu\,(T_h-|\tau|)\Big)\,
+e^{-j2\pi(f_c+f_k^{(u)})\cdot(\text{与 }\tau,\mu\text{有关的小量})}\,e^{-j\phi_0}.
+\qquad (6)
+$$
+
+在窄带假设 $f_K\ll f_c$ 以及“小量近似条件”（原文式 (7)(8)）下，上式可进一步近似，使得 $h_{u,k}(\tau,\mu)$ 与 $u,k$ 的关系大幅简化，并最终得到一个便于后续估计的“每跳观测模型”：其主要体现为 **(i)** 残余时钟偏斜误差 $\mu$ 引起的“随跳/符号线性增长的相位项”，以及 **(ii)** 时延 $\tau$ 引起的“与跳频率相关的相位旋转项”。
+
+将第 $u$ 个符号所有跳的观测堆叠为向量：
+
+$$
+\mathbf{r}(u)=[r_1^{(u)},r_2^{(u)},\ldots,r_K^{(u)}]^T\in\mathbb{C}^{K\times 1}.
+$$
+
+考虑加性复高斯噪声 $\mathbf{n}(u)\sim\mathcal{CN}(\mathbf{0},\sigma_n^2\mathbf{I})$，则第 $u$ 个符号的接收向量为：
+
+$$
+\mathbf{z}(u)=\mathbf{r}(u)+\mathbf{n}(u).
+\qquad (10)
+$$
+
+> 图 1（原文）为接收机框图：RF 振荡器、降频、去跳频、匹配滤波、抽取与后续精同步模块。  
+> **图占位：**
+>
+> - 图 1：接收机框图（Block diagram of the receiver）
+>
+> （如果你要我把 PDF 里的图抽取成图片并写入 `![](./figs/fig1.png)` 这种 Markdown 引用，也可以。）
+
+---
+
+# III. 基于网格的开环搜索（GRID-BASED OPEN-LOOP SEARCH）
+
+本节给出精同步的第一阶段：**开环估计**。思路是：在参数网格上枚举候选 $(\mu,\tau,\phi)$，对观测做相位/时延补偿并进行相干累加，使用最大似然准则选择最优参数，得到闭环跟踪所需的初值。
+
+---
+
+## III-A. 最大似然准则
+
+对导频段（或训练段）收集到的观测进行向量化。原文将观测与“无噪声重构项”分别向量化为：
+
+- $\mathbf{z}_{pl}=\mathrm{vec}(\mathbf{Z}_{pl})\in\mathbb{C}^{KQ_{pl}\times 1}$
+- $\mathbf{r}_{pl}=\mathrm{vec}(\mathbf{R}_{pl})\in\mathbb{C}^{KQ_{pl}\times 1}$
+
+在复高斯噪声假设下，关于 $(\mu,\tau,\phi)$ 的似然函数可写为（原文式 (13) 的 LaTeX 化）：
+
+$$
+L(\mu,\tau,\phi)=
+\left(\frac{1}{\pi\sigma_n^2}\right)^{Q_{pl}}
+\exp\!\left(
+-\frac{\left\|\mathbf{z}_{pl}-\mathbf{r}_{pl}\right\|^2}{\sigma_n^2}
+\right).
+\qquad (13)
+$$
+
+最大化 $L(\mu,\tau,\phi)$ 等价于最大化如下实部相关度量（原文式 (14)）：
+
+$$
+L'(\mu,\tau,\phi)=
+\Re\left\{
+\mathbf{z}_{pl}^{H}\mathbf{r}_{pl}
+\right\}.
+\qquad (14)
+$$
+
+因此，开环估计可转化为：在候选参数网格上，寻找使 $L'(\mu,\tau,\phi)$ 最大的点。
+
+---
+
+## III-B. 网格搜索的相干累加结构
+
+核心思想是对每个候选 $(\mu,\tau)$ 做“相位补偿/去旋转”，将不同跳、不同符号内本应相干的分量重新对齐，然后进行相干累加。原文将该过程写成“补偿矩阵 + 向量化内积”的形式，这里用更直观的方式表述：
+
+1. 对候选 $\mu$，补偿残余时钟偏斜导致的相位漂移项（随 $kT_h+uT_s$ 增长）。  
+2. 对候选 $\tau$，补偿由时延引起的“与跳频率相关的相位旋转”。  
+3. 对候选 $\phi$，补偿常相位项。  
+4. 对补偿后的样本做相干求和（或与本地模板做内积），得到搜索度量。
+
+---
+
+## III-C. 搜索步长与误差影响（开环阶段的参数设置）
+
+由于网格搜索的分辨率由步长决定，步长越小，估计越精细但计算量越大；步长过粗则会引入量化误差。原文进一步分析了 $\mu$ 与 $\tau$ 的搜索步长对误差上界/统计性能的影响，并给出在给定复杂度下的参数设置建议。
+
+> 图 2（原文）给出开环网格搜索的流程/示意。  
+> **图占位：**
+>
+> - 图 2：开环网格搜索流程（grid-based search procedure）
+
+---
+
+## III-D. 开环阶段的输出：为闭环提供初值
+
+开环阶段输出：
+
+- $\hat{\mu}_{\mathrm{OL}}$：残余时钟偏斜（或等效频偏参数）的初值  
+- $\hat{\tau}_{\mathrm{OL}}$：时延初值  
+- $\hat{\phi}_{\mathrm{OL}}$：相位初值  
+
+这些初值将作为下一节闭环 PLL/DLL 的捕获点，显著缩短闭环收敛时间，并提升最终稳态精度。
+
+# IV. 闭环精细参数估计（CLOSED-LOOP FINE PARAMETER ESTIMATION）
+
+本节研究闭环精同步：对**残余时延**、**时钟偏斜（残余）**进行精细估计，并实现**载波相位连续跟踪**。与 III 节不同，本节的精同步基于**数据段（data segment）**而非导频序列。总体结构如图 4：由 **译码器（Decoder）+ PLL + DLL** 三部分组成。
+
+- 译码器：从接收数据中提取对数似然比（LLR），通过译码反馈实现**去极性（de-polarization）**，为后续相干累加创造条件。  
+- PLL：跟踪载波相位并精估计时钟偏斜（或等效频偏参数）。  
+- DLL：在 PLL 补偿基础上进一步精估计时延。
+
+> 图 4：闭环精细参数估计框图（Block diagram of closed-loop fine parameter estimation）
+
+---
+
+## 4.1 数据段帧结构与符号分段
+
+为利用纠错码的译码反馈，数据段按“分段（segment）”处理。图 5 给出帧结构：每段含
+- 编码子段（coded sub-segment），长度 $Q_c$（承载 LDPC 编码比特/符号）
+- 填充子段（padding sub-segment），长度 $Q_p$
+
+因此每段总长度为
+$$
+Q_d = Q_c + Q_p.
+$$
+
+在闭环迭代中，以“第 $l$ 次迭代”对应的一个段作为处理单位，记该段按“跳频通道（$K$）×符号数（$Q_d$）”组织成矩阵：
+
+$$
+\mathbf{Z}^{(l)}_d =
+\Big[
+\mathbf{z}((l-1)Q_d+1),\,
+\mathbf{z}((l-1)Q_d+2),\,
+\ldots,\,
+\mathbf{z}(lQ_d)
+\Big]
+\in\mathbb{C}^{K\times Q_d}.
+\qquad (27)
+$$
+
+其中 $\mathbf{z}(q)\in\mathbb{C}^{K\times 1}$ 是第 $q$ 个符号在 $K$ 个跳频通道上的观测向量。
+
+> 图 5：数据段帧结构（Data segment frame）
+
+---
+
+## 4.2 译码反馈去极性（De-polarization）
+
+闭环需要对数据段进行相干累加，而原始 BPSK 数据符号 $b$ 会引入 $\pm 1$ 极性翻转。为消除该影响，利用译码器输出的软信息对每段符号进行去极性。
+
+设译码器对该段编码子段输出的硬判决（或软判决符号估计）为 $\hat{\mathbf{b}}^{(l)}_c\in\mathbb{R}^{Q_c\times 1}$，填充子段在结构上可视作全 1，则段内整体符号估计向量可写为：
+
+$$
+\hat{\mathbf{b}}^{(l)}=
+\begin{bmatrix}
+(\hat{\mathbf{b}}^{(l)}_c)^T & \mathbf{1}_{Q_p}^T
+\end{bmatrix}^T
+\in\mathbb{R}^{Q_d\times 1}.
+\qquad (29)
+$$
+
+相应的去极性操作可表示为对 $\mathbf{Z}^{(l)}_d$ 右乘对角矩阵：
+
+$$
+\dot{\mathbf{Z}}^{(l)}_d
+= \mathbf{Z}^{(l)}_d \cdot \mathrm{diag}\!\big(\hat{\mathbf{b}}^{(l)}\big),
+\qquad (28)
+$$
+
+其中 $\dot{\mathbf{Z}}^{(l)}_d$ 为去极性后的矩阵。
+
+---
+
+## 4.3 PLL 与 DLL 的补偿反馈
+
+在第 $l$ 次迭代，PLL 与 DLL 分别生成相位补偿矩阵 $\mathbf{P}^{(l)}_{\mathrm{pll}}$ 与时延补偿矩阵 $\mathbf{P}^{(l)}_{\tau}$（维度均为 $K\times Q_d$），对输入矩阵进行逐元素补偿（Hadamard 乘积记为 $\odot$）：
+
+$$
+\dot{\mathbf{Z}}^{(l)}_d
+=
+\mathbf{Z}^{(l)}_d
+\odot e^{-j2\pi \mathbf{P}^{(l)}_{\mathrm{pll}}}
+\odot e^{-j2\pi \mathbf{P}^{(l)}_{\tau}},
+\qquad (30\text{ 形式})
+$$
+
+初值通常设为
+$$
+\mathbf{P}^{(0)}_{\mathrm{pll}}=\mathbf{P}^{(0)}_{\tau}=\mathbf{0}_{K\times Q_d}.
+$$
+
+> 图 6：PLL 与 DLL 的反馈结构（Block diagram of PLL and DLL feedback）
+
+---
+
+## 4.4 PLL：相位判别、环路滤波与 NCO 更新
+
+### 4.4.1 相干累加与相位判别器
+
+对去极性且已补偿的段数据进行跨跳、跨符号相干累加，可形成 PLL 的相干统计量（示意记为）：
+
+$$
+s^{(l)}_{\mathrm{pll}}
+=
+\sum_{q=1}^{Q_d}\sum_{k=1}^{K}
+\big[\dot{\mathbf{Z}}^{(l)}_d\big]_{k,q}.
+$$
+
+PLL 相位判别误差（相位鉴别器输出）可写成 atan2 形式：
+
+$$
+e^{(l)}_{\mathrm{pll}}
+=
+\frac{1}{2\pi}
+\operatorname{atan2}\!\Big(
+\Im\{s^{(l)}_{\mathrm{pll}}\},
+\Re\{s^{(l)}_{\mathrm{pll}}\}
+\Big).
+\qquad (31)
+$$
+
+其中 $\Re\{\cdot\}$、$\Im\{\cdot\}$ 分别取实部与虚部。
+
+### 4.4.2 二阶 PLL 环路滤波器（连续域）
+
+对应图 6，PLL 的环路滤波器可写为：
+
+$$
+F_{\mathrm{pll}}(s)
+=
+\frac{2\zeta\omega_{\mathrm{pll}} s+\omega_{\mathrm{pll}}^{2}}{K_{\mathrm{pll}} s},
+\qquad (32)
+$$
+
+其中 $\zeta$ 为阻尼系数（文中建议 $0.4<\zeta<0.8$ 以兼顾稳定与收敛速度），$\omega_{\mathrm{pll}}$ 为特征频率，$K_{\mathrm{pll}}$ 为环路总增益。本文中相位判别器与 NCO 输出均做了归一化，可取 $K_{\mathrm{pll}}=1$。
+
+### 4.4.3 数字实现（boxcar 数字积分法）
+
+用盒式数字积分法可将 (32) 映射到离散域，得到：
+
+$$
+F_{\mathrm{pll}}(z)
+=
+\frac{
+(\omega_{\mathrm{pll}}^2 Q_d T_s + 2\zeta\omega_{\mathrm{pll}})
+-2\zeta\omega_{\mathrm{pll}} z^{-1}
+}{
+K_{\mathrm{pll}}(1-z^{-1})
+}.
+\qquad (33)
+$$
+
+PLL 的状态更新可写为（对应原文对 NCO 的实现）：
+
+$$
+\dot{\theta}^{(l+1)}_{\mathrm{pll}}
+=
+\dot{\theta}^{(l)}_{\mathrm{pll}}
++
+\frac{\omega_{\mathrm{pll}}^{2}}{K_{\mathrm{pll}}}\,e^{(l)}_{\mathrm{pll}},
+$$
+
+$$
+\theta^{(l+1)}_{\mathrm{pll}}
+=
+\dot{\theta}^{(l+1)}_{\mathrm{pll}}
++
+\frac{2\zeta\omega_{\mathrm{pll}}}{K_{\mathrm{pll}}}\,e^{(l)}_{\mathrm{pll}}.
+\qquad (34)
+$$
+
+> 图 7：PLL 环路滤波器数字实现（PLL loop filter digital implementation）
+
+---
+
+## 4.5 DLL：时延判别、滤波与 NCO 更新
+
+DLL 的目标是对残余时延进行更精细估计。其判别思想是：通过构造“与时延偏差单调/近线性相关”的判别输出，实现时延误差的闭环收敛。
+
+### 4.5.1 DLL 判别特性（线性化结果）
+
+原文通过推导得到 DLL 判别输出与归一化时延变量 $\lambda$ 的关系，在 $K$ 足够大时可近似线性：
+
+$$
+-\frac{1}{\tan\!\left(\frac{\pi}{K}\lambda\right)}\tan\!\left(\frac{\pi}{2K}\right)
+\;\xrightarrow[K\ \text{大}]{}\;
+-\lambda.
+\qquad (38)
+$$
+
+该结论表明，经过 (37)–(38) 的处理后，可以得到与时延近似线性相关的判别结果，从而便于闭环跟踪。
+
+> 图 8：DLL 相位判别器框图（Block diagram of DLL phase discriminator）  
+> 图 9：DLL 判别特性曲线（DLL phase discrimination characteristic）
+
+### 4.5.2 DLL 环路滤波器（连续域）
+
+DLL 采用常系数环路滤波器：
+
+$$
+F_{\tau}(s)=\frac{\omega_{\tau}}{K_{\tau}},
+\qquad (41)
+$$
+
+其中 $\omega_{\tau}$ 为 DLL 特征频率，$K_{\tau}$ 为 DLL 总增益。由于 DLL 判别器输出按 $1/(K\Delta f)$ 归一化，文中取
+$$
+K_{\tau}=K\Delta f.
+$$
+
+NCO$_\tau$ 将时延估计结果写入补偿矩阵，实现下一次迭代的时延补偿。
+
+> 图 10：PLL 等效模型（Equivalent model of PLL）  
+> 图 11：DLL 等效模型（Equivalent model of DLL）
+
+---
+
+## 4.6 闭环稳态误差（RMSE）分析要点
+
+### 4.6.1 时钟偏斜（或等效频偏参数）估计误差（概念）
+
+从控制角度，$\theta^{(l)}_{\mathrm{pll}}$ 可视为对残余参数（与 $\mu$ 等效）的一种估计。文中将 PLL 估计方差分解为环路噪声项与残余相位项的贡献，并给出稳态近似表达（原文式 (49)）：
+
+$$
+\mathrm{var}\!\left(\theta^{(l)}_{\mathrm{pll}}\right)
+\approx
+\Big(
+\mathrm{var}\!\left(n^{(l)}_{\mathrm{pll}}\right)
++
+\mathrm{var}\!\left(\Delta\hat{\phi}^{(l)}_{\mathrm{pll}}\right)
+\Big)
+\left(2\zeta\omega_{\mathrm{pll}}+\omega_{\mathrm{pll}}^2\right)^2.
+\qquad (49)
+$$
+
+进而可以得到对 $\hat{\mu}_d$（归一化到 $Q_dT_s$）的 RMSE 近似形式（按原文推导关系整理为可渲染写法）：
+
+$$
+\sigma_{\hat{\mu}_d}
+\approx
+\frac{1}{2\pi Q_dT_s f_c}
+\left(2\zeta\omega_{\mathrm{pll}}+\omega_{\mathrm{pll}}^2\right)
+\sqrt{
+\mathrm{var}\!\left(n^{(l)}_{\mathrm{pll}}\right)
++
+\mathrm{var}\!\left(\Delta\hat{\phi}^{(l)}_{\mathrm{pll}}\right)
+}.
+$$
+
+（文中随后给出稳态噪声方差与带宽参数的对应关系，用于数值评估。）
+
+### 4.6.2 时延估计 RMSE（稳态）
+
+文中给出闭环稳态下 $\hat{\tau}_d$ 的符号级 RMSE（原文式 (58)），其中 “$s$” 表示开方：
+
+$$
+\sigma'_{\hat{\tau}_d}
+=
+K\Delta f\,
+\sqrt{
+\frac{
+B_{\tau}(1-2B_{\tau})
+}{
+8\cdot \mathrm{sinc}^{2}\!\left(\frac{1}{2}\right)\,K\,A_{\tau}^{2}/\sigma_{n}^{2}
+}
+},
+\qquad (58)
+$$
+
+其中 $K\Delta f$ 是从环路误差到 $\tau$ 估计量的比例因子，$B_\tau$ 为等效噪声带宽（归一化带宽）相关参数，$A_\tau$ 为有效幅度项，$\sigma_n^2$ 为噪声功率。
+
+进一步用 $E_s/N_0$ 表示信噪比，并考虑累加时间为 $Q_dT_s$，可将 (58) 改写为（原文式 (59)）：
+
+$$
+\sigma_{\hat{\tau}_d}
+=
+K\Delta f\,
+\sqrt{
+\frac{
+B_{\tau}(1-2B_{\tau})
+}{
+8\cdot \mathrm{sinc}^{2}\!\left(\frac{1}{2}\right)\,Q_d\,(E_s/N_0)
+}
+}.
+\qquad (59)
+$$
+
+---
+
+# V. 参数估计的 CRLB（CRLB OF PARAMETER ESTIMATION）
+
+为评估算法性能，本节基于 III 节开环阶段的信号模型推导 $\mu$、$\tau$、$\phi$ 的 Cramer–Rao 下界（CRLB）。
+
+将 (12) 中相关相位项写成（按符号堆叠）：
+
+对第 $u$ 个符号定义
+$$
+\boldsymbol{\varphi}_{\mu}(u)
+=
+2\pi\big(f_c+\mathbf{f}^{(u)}\big)\odot
+\Big[
+\frac{T_h}{2} + [0:K-1]^T T_h + (u-1)T_s
+\Big]\mu
+\in\mathbb{R}^{K\times 1},
+$$
+
+$$
+\boldsymbol{\varphi}_{\tau}(u)=2\pi\,\mathbf{f}^{(u)}\,\tau\in\mathbb{R}^{K\times 1}.
+$$
+
+将所有导频符号（共 $Q_{pl}$ 个）堆叠并向量化：
+
+$$
+\boldsymbol{\psi}_{\mu}
+=
+\mathrm{vec}\Big([\boldsymbol{\varphi}_{\mu}(1),\boldsymbol{\varphi}_{\mu}(2),\ldots,\boldsymbol{\varphi}_{\mu}(Q_{pl})]\Big)
+\in\mathbb{R}^{KQ_{pl}\times 1},
+$$
+
+$$
+\boldsymbol{\psi}_{\tau}
+=
+\mathrm{vec}\Big([\boldsymbol{\varphi}_{\tau}(1),\boldsymbol{\varphi}_{\tau}(2),\ldots,\boldsymbol{\varphi}_{\tau}(Q_{pl})]\Big)
+\in\mathbb{R}^{KQ_{pl}\times 1},
+$$
+
+并定义
+$$
+\mathbf{g}=e^{-j(\boldsymbol{\psi}_{\mu}+\boldsymbol{\psi}_{\tau})}
+\in\mathbb{C}^{KQ_{pl}\times 1}.
+\qquad (66)
+$$
+
+根据 (10)，接收向量 $\mathbf{z}_{pl}$ 的均值为信号项
+$$
+\mathbf{r}_{pl}=A_{\tau,\mu,\phi}\,\mathbf{g},
+$$
+协方差矩阵为
+$$
+\boldsymbol{\Gamma}=\sigma_n^2\mathbf{I}.
+$$
+
+设待估参数向量
+$$
+\boldsymbol{\theta}=[\mu,\tau,\phi]^T,
+$$
+则 Fisher 信息矩阵（FIM）可由
+$$
+\mathbf{I}(\boldsymbol{\theta})
+=
+\frac{2}{\sigma_n^2}
+\Re\left\{
+\left(\frac{\partial \mathbf{r}_{pl}}{\partial \boldsymbol{\theta}}\right)^H
+\left(\frac{\partial \mathbf{r}_{pl}}{\partial \boldsymbol{\theta}}\right)
+\right\}
+$$
+构造。
+
+推导中用到
+$$
+\frac{\partial \mathbf{g}}{\partial \mu}
+=
+-j\frac{\partial \boldsymbol{\psi}_{\mu}}{\partial \mu}\odot \mathbf{g},
+\qquad
+\frac{\partial \mathbf{g}}{\partial \tau}
+=
+-j\frac{\partial \boldsymbol{\psi}_{\tau}}{\partial \tau}\odot \mathbf{g}.
+\qquad (72')
+$$
+
+并且对索引位置 $(u-1)K+k$ 有（原文式 (73)）：
+
+$$
+\left[\frac{\partial \boldsymbol{\psi}_{\tau}}{\partial \tau}\right]_{(u-1)K+k}
+=
+2\pi f^{(u)}_{k}.
+\qquad (73)
+$$
+
+最终，$\mu,\tau,\phi$ 的 CRLB 可由 $\mathbf{I}(\boldsymbol{\theta})^{-1}$ 的对角元给出（原文式 (74)）：
+
+$$
+\mathrm{CRLB}(\mu)=[\mathbf{I}^{-1}(\boldsymbol{\theta})]_{1,1},\quad
+\mathrm{CRLB}(\tau)=[\mathbf{I}^{-1}(\boldsymbol{\theta})]_{2,2},\quad
+\mathrm{CRLB}(\phi)=[\mathbf{I}^{-1}(\boldsymbol{\theta})]_{3,3}.
+\qquad (74)
+$$
+
+---
+
+# VI. 仿真与讨论（SIMULATIONS AND DISCUSSIONS）
+
+本节通过仿真验证所提开环 + 闭环算法的性能，并与 CRLB 及传统码环（code loop）方案对比。
+
+## 6.1 仿真参数设置
+
+设归一化符号率 $R_s=1$ sps。接收信号中心频率设为
+$$
+f_c = 10^7 R_s.
+$$
+
+取 $K=32$，$M=8$，则频率间隔对应的频率空间为
+$$
+\Delta f = MKR_s = 256R_s.
+$$
+
+纠错编码采用 LDPC 码：
+- 码率 $1/2$
+- 码长 $Q_c=128$
+- 填充长度 $Q_p=2$
+- 段长度 $Q_d=Q_c+Q_p=130$
+
+在该设定下，比特级与符号级信噪比关系近似为：
+$$
+\left[\frac{E_b}{N_0}\right]_{\mathrm{dB}}
+\approx
+\left[\frac{E_s}{N_0}\right]_{\mathrm{dB}} + 3\,\mathrm{dB}.
+$$
+
+闭环算法的输入误差（初值误差）设为与开环网格搜索“最大可能残差”一致，用以评估“开环提供初值 + 闭环进一步收敛”的效果。
+
+---
+
+## 6.2 开环正确检测概率与 RMSE
+
+- 图 12：开环正确检测概率随 $E_s/N_0$ 变化  
+- 图 13：网格开环搜索的 RMSE（随 SNR 与网格步长等参数变化）
+
+> 图 12：Correct detection probability of open-loop  
+> 图 13：RMSE of grid-based open-loop search
+
+---
+
+## 6.3 闭环迭代收敛性与稳态性能
+
+图 14 给出迭代收敛曲线，可见 PLL/DLL 在合适环路带宽参数下能快速收敛到稳态。
+
+> 图 14：Plot of iteration convergence
+
+图 15 展示闭环估计的稳态 RMSE：对时延、时钟偏斜（等效参数）与载波相位跟踪均能显著优于仅开环网格搜索，并在中高 SNR 区域与 CRLB 呈平行趋势（对数坐标下间隔近似常数）。
+
+当 $E_b/N_0 > 5$ dB 时，闭环 RMSE 与 CRLB 的间隔可用下式近似（原文式 (77)）：
+
+$$
+\upsilon_{\hat{\mu}_d}\!\left(\frac{E_b}{N_0}\right)
+\approx
+0.2890\,
+\left(2\zeta\omega_{\mathrm{pll}}+\omega_{\mathrm{pll}}^2\right)
+\sqrt{(1-2B_{\mathrm{pll}})\,\mathrm{CRLB}_{\hat{\mu}}\!\left(\frac{E_b}{N_0}\right)},
+$$
+
+$$
+\upsilon_{\hat{\tau}_d}\!\left(\frac{E_b}{N_0}\right)
+\approx
+\sqrt{B_{\tau}(1-2B_{\tau})\,\mathrm{CRLB}_{\hat{\tau}}\!\left(\frac{E_b}{N_0}\right)},
+$$
+
+$$
+\upsilon_{\Delta\hat{\phi}_{\mathrm{pll}}}\!\left(\frac{E_b}{N_0}\right)
+\approx
+0.5\sqrt{(1-2B_{\mathrm{pll}})\,\mathrm{CRLB}_{\hat{\phi}}\!\left(\frac{E_b}{N_0}\right)}.
+\qquad (77)
+$$
+
+其中 $B_{\mathrm{pll}}$、$B_{\tau}$ 为归一化带宽相关量（与环路噪声等效带宽对应）。
+
+> 图 15：Closed-loop simulation results（含 (a)(b)(c)(d)(e) 多子图：参数 RMSE 与 CRLB、相位跟踪、以及与传统算法对比）
+
+---
+
+## 6.4 与传统码环（code loop）算法对比
+
+图 15(e) 对比了本文方法与文献中 CFFH/DS 系统码环算法的时延估计 RMSE。为公平比较，设置相同符号率、环路阶数与累加时长；CFFH/DS 方案采用逐符号相干积分。
+
+结果显示：在相同归一化特征频率 $e\omega_{\text{codeloop}}=e\omega_{\tau}=0.2$ 下，本文提出的闭环方法在较宽 SNR 区间内显著优于码环算法；例如在 $E_b/N_0=15$ dB 时，本文算法的 RMSE 约为码环算法的 **$2/7$**（原文表述）。
+
+---
+
+# VII. 结论（CONCLUSION）
+
+本文提出了一种面向 CFFH 系统的精同步算法：首先通过**基于网格的开环搜索**将参数误差锁定在较小范围内，随后利用**闭环估计（PLL + DLL）**对参数进一步精确估计。文中给出了各阶段的详细实现结构并分析估计误差；推导了闭环阶段时延、时钟偏斜与载波相位估计的 RMSE，以及对应 CRLB。仿真结果表明：系统能实现对时钟偏斜与载波相位的良好跟踪，并且时延估计相比传统码环算法具有显著提升。
+

@@ -1,0 +1,397 @@
+# 基于卡尔曼滤波的 Link-22 数据链网络时间同步算法（中文翻译 + Markdown）
+
+> 说明：本文原文中除中文内容外，还包含英文题名、摘要与关键词。下文已将英文部分全部译为中文，并按 Markdown 重新排版；公式用 LaTeX 表示；图采用“占位 + 图题/说明”的方式（如需嵌入原图，可自行从 PDF 截图并替换占位图片路径）。
+
+---
+
+## 文献信息
+
+- 期刊：应用科技（Applied Science and Technology）
+- 卷(期)：第 43 卷 第 6 期
+- 时间：2016 年 12 月
+- DOI：10.11991/yykj.201601004
+- 网络出版地址：CNKI 页面（见原文）
+- 文章类型：A
+- 文章编号：1009-671X(2016)06-053-06
+
+## 题名
+
+**基于卡尔曼滤波的 Link-22 数据链网络时间同步算法** fileciteturn11file0L6-L15
+
+（英文题名译文：**基于卡尔曼滤波的 Link-22 数据链网络时钟同步算法**） fileciteturn11file0L16-L25
+
+## 作者与单位
+
+- 陈威，刘彤 fileciteturn11file0L6-L8  
+- 哈尔滨工程大学 信息与通信工程学院，黑龙江 哈尔滨 150001 fileciteturn11file0L8-L8
+
+---
+
+## 摘要（中文）
+
+为了维持网络正常运行，Link-22 数据链所采用的时分多址接入（TDMA）协议必须要求高精度的网络时间同步。传统 RTT（往返时间）算法降低了系统的实时性；PTP（精确时间协议）算法增大了系统的网络负担；且两种算法都忽略了延迟抖动以及获取时间戳带来的误差，导致时间同步精度低。基于此，本文提出一种基于卡尔曼滤波的 RTT-PTP 算法：在不影响系统实时性、且不增加网络开销的情况下，利用卡尔曼滤波有效降低延迟抖动以及不同时间戳精度带来的误差。仿真结果验证了新算法能够有效提高系统时钟精度。 fileciteturn11file0L9-L13
+
+（英文摘要译文已合并进上文摘要） fileciteturn11file0L20-L24
+
+## 关键词
+
+Link-22 数据链；RTT 时间同步算法；PTP 时间同步算法；卡尔曼滤波；往返时间—精确时钟同步协议（RTT-PTP） fileciteturn11file0L14-L15
+
+---
+
+## 引言
+
+Link-22 是美军海军最新研制的一种抗干扰、保密可靠、灵活机动的中速率战术数据链，采用 TDMA 组网体制构成分布式网状网络。对于 TDMA 体制的通信系统，网络同步问题十分关键，必须保证每个终端工作在同一时间基准上，否则会导致时隙混乱产生包碰撞，影响系统通信性能。因此，如何保证 Link-22 数据链网络时间同步精度是其重要研究问题之一。 fileciteturn11file0L26-L34
+
+现有文献针对 Link-22 的网络时间同步算法研究较少。参考现有时间同步算法分析可知：Link-16 的 RTT 时间同步算法实时性不高，IEEE 1588 PTP 时间同步算法网络负担大；此外，两种算法均忽略了传输时延不对称性以及获取时间戳存在误差的问题，且误差随时间推移对同步精度影响逐渐增大。 fileciteturn11file0L40-L46
+
+现有算法一般忽视延迟抖动与时间戳误差，只能在短时间内满足精度要求。为此，本文提出基于卡尔曼滤波的时间同步方法，可有效滤除延迟抖动与时间戳误差，且不会增加通信系统网络开销。 fileciteturn11file0L47-L53
+
+---
+
+## 1 Link-22 数据链的 RTT 时间同步算法
+
+Link-22 数据链采用 TDMA 的信道接入方式，因此必须保证所有节点具有相同时间起点；运行过程中通过时间同步算法不断纠正时钟偏差。数据链时间同步分为外同步与自同步。相较外同步，自同步不依赖外部设备，可在系统内部自行完成同步。网络运行开始前，各成员维持绝对时间（TOD）；运行过程中通过与时间基准提供者校时，使网内成员 TOD 一致。 fileciteturn11file0L55-L69
+
+自同步分为粗同步与精同步。本文讨论精同步：选取时钟频率稳定性较好的 Link-22 终端作为网络时间基准（绝对时间），通过发送 RTT 校准报文实现全网 TOD 一致。基本过程如图 1。 fileciteturn11file0L70-L78
+
+### 图 1（占位）
+
+```latex
+\begin{figure}[h]
+  \centering
+  % \includegraphics[width=0.75\linewidth]{figures/fig1.png}
+  \caption{图1 RTT同步算法（原文示意图）}
+\end{figure}
+```
+
+RTT 同步算法过程：需要同步的非基准单元（NU）向基准单元发送询问校准报文 RTT-I；基准单元接收后，经过一段时间回复 RTT-R，确保 RTT-I 与 RTT-R 的发送与接收在一个时隙内完成；非基准 NU 通过发送与接收 RTT 的时间间隔来调整本地时间偏差，实现较高精度同步。 fileciteturn11file0L79-L86
+
+设基准单元确定 RTT 询问消息到达时间为 \(TOA_I\)，对时单元确定 RTT 应答消息到达时间为 \(TOA_R\)。设基准单元从时隙起点到发送应答消息的时间为 \(t_d\)（原文符号见式中），则询问过程传输时延为： fileciteturn11file0L87-L92
+
+\[
+t_p = TOA_I - t_I \tag{1}
+\]
+
+RTT 应答过程的传输时延为： fileciteturn11file0L94-L95
+
+\[
+t_p = TOA_R + \varepsilon - t_d \tag{2}
+\]
+
+由式 (1) 与式 (2) 可得两站初始时隙偏差（询问站需校正的误差）为： fileciteturn11file0L96-L100
+
+\[
+\varepsilon = \frac{TOA_I - TOA_R + t_d}{2} \tag{3}
+\]
+
+其中 \(TOA_I\) 由询问站测得，\(TOA_R\) 由 RTT 应答报文获得。利用式 (3) 可实现网络时间同步。 fileciteturn11file0L101-L104
+
+但该算法建立在传输链路对称前提下，且要求基准单元必须在一个时隙内回复；若存在高优先级消息，将影响实时性；同时忽略时间戳误差，误差随时间累积可能导致包碰撞，甚至系统崩溃。 fileciteturn11file0L105-L110
+
+---
+
+## 2 PTP 时间同步算法（IEEE 1588 思想）
+
+PTP 协议根据时钟精度选择网络中精度高者为主时钟，其余为从时钟；主时钟提供基准，从时钟与其进行时间调整。信息交换过程如图 2。 fileciteturn11file0L111-L115
+
+### 图 2（占位）
+
+```latex
+\begin{figure}[h]
+  \centering
+  % \includegraphics[width=0.85\linewidth]{figures/fig2.png}
+  \caption{图2 主从时钟的时间交换过程（原文示意图）}
+\end{figure}
+```
+
+PTP 信息交换四步： fileciteturn11file0L116-L128
+
+1. 主时钟发送同步报文，记录发送时间戳 \(t_1\)；从时钟接收同步报文，记录接收本地时间 \(t_2\)。
+2. 主时钟发送跟随报文，携带 \(t_1\)。
+3. 从时钟发送延迟请求报文，记录发送时间戳 \(t_3\)；主时钟接收并记录接收时间戳 \(t_4\)。
+4. 从时钟接收延迟应答报文，获取 \(t_4\)。
+
+由 \(t_1,t_2\) 得主从时钟偏差 \(\theta\) 与从主到从（或主到从）链路延迟 \(delay_{fs}\) 之和： fileciteturn11file0L129-L136
+
+\[
+t_2 - t_1 = \theta + delay_{fs} \tag{4}
+\]
+
+由 \(t_3,t_4\) 得主从时钟偏差 \(\theta\) 与从到主链路延迟 \(delay_{sf}\) 的关系： fileciteturn11file0L137-L141
+
+\[
+t_4 - t_3 = delay_{sf} - \theta \tag{5}
+\]
+
+PTP 假设链路理想对称： fileciteturn11file0L142-L145
+
+\[
+delay = delay_{fs} = delay_{sf} \tag{6}
+\]
+
+联立式 (4)、(5) 得： fileciteturn11file0L145-L152
+
+\[
+\theta = \frac{(t_2-t_1)-(t_4-t_3)}{2}, \qquad
+delay = \frac{(t_2-t_1)+(t_4-t_3)}{2} \tag{7}
+\]
+
+PTP 对交互时序要求不严格，利于高优先级传输；但其精确同步依赖主从链路对称，且忽略时间戳误差。在 Link-22 中链路不对称且不稳定，双向时延不等且波动，并且 PTP 需要 4 次携带时间信息的包交换，网络负担较大。 fileciteturn11file0L153-L162
+
+---
+
+## 3 Link-22 数据链时间同步算法改进：RTT-PTP
+
+针对 RTT 与 PTP 的优缺点，本文提出结合并改进得到适用于 Link-22 的 RTT-PTP 时间同步算法，其信息交换过程如图 3。 fileciteturn11file0L163-L168
+
+### 图 3（占位）
+
+```latex
+\begin{figure}[h]
+  \centering
+  % \includegraphics[width=0.75\linewidth]{figures/fig3.png}
+  \caption{图3 从/主时钟的时间交互过程（RTT-PTP，原文示意图）}
+\end{figure}
+```
+
+RTT-PTP 信息交换 4 步： fileciteturn11file0L169-L181
+
+1. 子时钟在时间调整周期到来时向基准时钟发送同步询问报文，并记录发送时间戳 \(t_1\)；
+2. 基准时钟接收到同步询问报文时记录接收时间戳 \(t_2\)；
+3. 基准时钟在空闲时隙到来时向子时钟发送同步应答报文，应答报文携带 \(t_2\)（接收询问的时间戳）与 \(t_3\)（发送应答的时间戳）；
+4. 子时钟接收同步应答报文时记录接收时间戳 \(t_4\)。
+
+设主从时钟偏移为 \(\theta\)，从主到从传输延迟为 \(delay_{fs}\)，从到主传输延迟为 \(delay_{sf}\)。由时间戳可得方程组： fileciteturn11file0L182-L188
+
+\[
+\begin{cases}
+t_2 - t_1 = delay_{fs} - \theta \\
+t_4 - t_3 = \theta + delay_{sf}
+\end{cases} \tag{8}
+\]
+
+若近似认为双向延迟相等 \(delay_{fs}=delay_{sf}=delay\)，则可得： fileciteturn11file0L189-L196
+
+\[
+\theta = \frac{(t_4-t_3)-(t_2-t_1)}{2}, \qquad
+delay = \frac{(t_2-t_1)+(t_4-t_3)}{2} \tag{8'}
+\]
+
+RTT-PTP 结合两者优势：避免 RTT 要求基准单元必须在同一时隙内收发同步报文；并减少与基准单元交换时间信息报文次数，避免 PTP 的 4 次交换过程，从而显著降低系统网络负担。 fileciteturn11file0L197-L202
+
+---
+
+## 4 基于卡尔曼滤波的 RTT-PTP 时间同步算法
+
+Link-22 中 NU 位置变化频繁且可能高速移动，导致链路不对称与延迟抖动较大，影响偏移 \(\theta\) 的估计精度；此外获取时间戳存在误差，且误差随时间增长影响显著。针对这两类不可避免误差，本文提出基于卡尔曼滤波的 RTT-PTP 时间同步算法，通过滤波降低误差影响。 fileciteturn11file0L205-L213
+
+### 4.1 时间同步状态空间方程
+
+选取主从时钟偏移量 \(\theta\) 与时钟偏移率 \(\alpha\) 为状态变量，对时钟建模，得到 RTT-PTP 时间同步的状态方程： fileciteturn11file0L217-L223
+
+\[
+\begin{cases}
+\theta(k)=\theta(k-1)+\alpha(k-1)\,T+w_\theta(k-1)\\
+\alpha(k)=\alpha(k-1)+w_\alpha(k-1)
+\end{cases}\tag{9}
+\]
+
+其中 \(T\) 为离散系统采样时间；\(w_\theta,w_\alpha\) 为系统噪声，假设为高斯白噪声，其方差分别为 \(\sigma_\theta^2\) 与 \(\sigma_\alpha^2\)。 fileciteturn11file0L224-L226
+
+写成矩阵形式： fileciteturn11file0L227-L232
+
+\[
+x(k)=A\,x(k-1)+w(k-1),
+\quad
+x(k)=\begin{bmatrix}\theta(k)\\ \alpha(k)\end{bmatrix},
+\;
+A=\begin{bmatrix}1 & T\\ 0 & 1\end{bmatrix},
+\;
+w(k-1)=\begin{bmatrix}w_\theta(k-1)\\ w_\alpha(k-1)\end{bmatrix}.
+\]
+
+当节点进行第 \(k\) 次时间同步时，由式 (8)（或其近似形式）可写： fileciteturn11file0L233-L236
+
+\[
+\begin{cases}
+t_2(k)-t_1(k)=delay_{fs}(k)-\theta(k)\\
+t_4(k)-t_3(k)=\theta(k)+delay_{sf}(k)
+\end{cases}
+\]
+
+由于存在延迟抖动，双向延迟不再相等，可设观测到的等效延迟： fileciteturn11file0L236-L240
+
+\[
+delay_F(k)=delay(k)+v_d(k) \tag{10}
+\]
+
+其中 \(v_d\) 为观测噪声，可视作均值为 0、方差为 \(\sigma_d^2\) 的高斯白噪声。 fileciteturn11file0L239-L240
+
+由式 (10) 推得偏移的观测关系（以原文式为准）： fileciteturn11file0L241-L244
+
+\[
+\theta(k)=\frac{(t_4(k)-t_3(k))-(t_2(k)-t_1(k))}{2}+v_d(k) \tag{10'}
+\]
+
+又由于时间戳 \(t_1,t_2,t_3,t_4\) 存在标记误差，RTT-PTP 的量测方程可写为： fileciteturn11file0L244-L246
+
+\[
+\theta_F(k)=\theta(k)+v_{\theta F}(k) \tag{11}
+\]
+
+其中观测噪声 \(v_{\theta F}\) 定义为： fileciteturn11file0L247-L250
+
+\[
+v_{\theta F}=\frac{\Delta t_2+\Delta t_3}{2}-\frac{\Delta t_1+\Delta t_4}{2}+v_d
+\]
+
+由分析可知，\(v_{\theta F}\) 是传输时延不对等性 \(\Delta d\) 与时间戳标记误差 \(\Delta t_i(i=1,2,3,4)\) 之和，时间戳标记不确定性可视为均值为零的独立随机变量。 fileciteturn11file0L250-L254
+
+若 \(\sigma_{tfs}^2\) 表示 \(\Delta t_1,\Delta t_4\) 的方差，\(\sigma_{tsf}^2\) 表示 \(\Delta t_2,\Delta t_3\) 的方差，则 \(v_{\theta F}\) 的方差为独立分量方差之和： fileciteturn11file0L253-L255
+
+\[
+\sigma_{\theta F}^2=\frac{1}{4}\Big(\sigma_{tfs}^2+\sigma_{tsf}^2+\sigma_d^2\Big)
+\]
+
+忽略 \(v_{\theta F}\) 的变化，则时钟偏移率的观测方程为： fileciteturn11file0L308-L312
+
+\[
+\alpha_F(k)=\frac{\theta(k)-\theta(k-1)}{T} \tag{12}
+\]
+
+此外可设 \(\alpha_F\) 的观测噪声 \(v_{\alpha F}\) 与 \(v_{\theta F}\) 存在耦合关系（原文给出协方差形式）。 fileciteturn11file0L264-L266
+
+联立式 (11)、(12) 得量测方程： fileciteturn11file0L266-L272
+
+\[
+z(k)=H\,x(k)+v(k),\quad
+z(k)=\begin{bmatrix}\theta_F(k)\\ \alpha_F(k)\end{bmatrix},
+\;
+H=\begin{bmatrix}1 & 0\\ 0 & 1\end{bmatrix},
+\;
+v(k)=\begin{bmatrix}v_{\theta F}(k)\\ v_{\alpha F}(k)\end{bmatrix}.
+\]
+
+### 4.2 基于卡尔曼滤波的 RTT-PTP 时间同步
+
+综合可得 RTT-PTP 的状态空间模型： fileciteturn11file0L276-L284
+
+\[
+\begin{cases}
+x(k)=A\,x(k-1)+w(k-1)\\
+z(k)=H\,x(k)+v(k)
+\end{cases} \tag{13}
+\]
+
+系统噪声 \(w\) 与观测噪声 \(v\) 为相互独立的高斯随机过程，其协方差矩阵（按原文给出的形式）为： fileciteturn11file0L284-L294
+
+\[
+Q=\begin{bmatrix}\sigma_\theta^2 & 0\\ 0 & \sigma_\alpha^2\end{bmatrix},
+\qquad
+R=\begin{bmatrix}
+\sigma_{\theta F}^2 & \cdot\\
+\cdot & \sigma_{\alpha F}^2
+\end{bmatrix}
+\]
+
+（注：“\(\cdot\)”为原文给出的耦合项/协方差项；由于版面抽取字符不完整，建议以 PDF 图中矩阵为准。） fileciteturn11file0L264-L266
+
+鉴于系统存在较大延迟抖动与时间戳误差，采用卡尔曼滤波滤除误差影响，步骤如下： fileciteturn11file0L295-L307
+
+- **预测：**
+  \[
+  \hat{x}(k|k-1)=A\,\hat{x}(k-1)
+  \]
+- **最小预测均方差：**
+  \[
+  P(k|k-1)=A\,P(k-1)\,A^T+Q
+  \]
+- **增益矩阵：**
+  \[
+  K(k)=P(k|k-1)H^T\left(HP(k|k-1)H^T+R\right)^{-1}
+  \]
+- **状态修正：**
+  \[
+  \hat{x}(k)=\hat{x}(k|k-1)+K(k)\left[z(k)-H\hat{x}(k|k-1)\right]
+  \]
+- **最小均方矩阵：**
+  \[
+  P(k)=\left[I-K(k)H\right]P(k|k-1)
+  \]
+
+---
+
+## 5 实验验证（MATLAB 仿真）
+
+本文在 MATLAB 平台进行仿真验证。仿真时间设置为 50 s，离散时间间隔 \(T=0.1\) s；时间偏移与偏移率状态矢量初值为  
+\(\;x(0)=[0\;\;1]^T\times 10^{-3}\)，初始协方差矩阵  
+\(P(0)=\begin{bmatrix}10&0\\0&10\end{bmatrix}\)。 fileciteturn11file0L326-L329
+
+状态噪声与观测噪声协方差矩阵设置（按原文给出的形式）： fileciteturn11file0L329-L332
+
+\[
+Q(0)=\begin{bmatrix}10&0\\0&10\end{bmatrix},\qquad
+R(0)=0.25\times
+\begin{bmatrix}
+1 & \frac{\sqrt{2}}{T}\\[2pt]
+\frac{\sqrt{2}}{T} & \frac{2}{T^2}
+\end{bmatrix}
+\]
+
+图 4、5 给出时间偏差与时间偏差率的真实值、未滤波测量值与滤波后状态估计值；图 6、7 给出对应误差曲线。结果表明：由于延迟抖动与时间戳误差，测量值与估计值均在真实值附近震荡；但卡尔曼滤波后的估计误差曲线显著低于未滤波测量误差曲线，说明滤波可提高估计精度，并可利用估计的主从时钟偏移量修正时钟模型，从而提升同步精度。 fileciteturn11file0L333-L345
+
+### 图 4–图 8（占位）
+
+```latex
+\begin{figure}[h]\centering\caption{图4 时间偏差同步效果图（原文图）}\end{figure}
+\begin{figure}[h]\centering\caption{图5 时间偏差率同步效果图（原文图）}\end{figure}
+\begin{figure}[h]\centering\caption{图6 时间偏差误差曲线图（原文图）}\end{figure}
+\begin{figure}[h]\centering\caption{图7 时间偏差率误差曲线图（原文图）}\end{figure}
+\begin{figure}[h]\centering\caption{图8 引入滤波前后各步运算耗时比较图（原文图）}\end{figure}
+```
+
+表 1 给出滤波前后时间偏差与时间偏差率误差的统计效果；图 8 给出引入滤波前后各步运算耗时。结果表明：虽然引入滤波使运算步骤增加从而耗时增加，但各步耗时仍处于同一运算级范围内，说明不会严重影响实时性，却能使估计精度提高一个数量级。 fileciteturn11file0L363-L370
+
+### 表 1 时间偏差与时间偏差率误差的统计效果
+
+fileciteturn11file0L371-L374
+
+| 指标 | 经过滤波处理 | 未经过滤波处理 |
+|---|---:|---:|
+| 时间偏差误差 | 0.2043 | 2.036 |
+| 时间偏差率误差 | 0.1511 | 2.050 |
+
+---
+
+## 6 结束语
+
+针对 RTT 时间同步算法忽视消息传输实时性、PTP 时间同步算法需 4 次时间消息交换而增大网络负担这两点不足，并考虑两种算法均忽视延迟抖动与时间戳获取误差导致同步误差的问题，本文提出基于卡尔曼滤波的 RTT-PTP 时间同步算法。新算法既满足消息传输实时性，又不增加系统网络负担；同时利用卡尔曼滤波在不提高硬件要求的基础上消除不可避免但一直存在的误差影响。卡尔曼滤波可在不浪费 Link-22 数据链时隙资源前提下单独作用于非基准单元，使其保持较小的时钟偏差，为 Link-22 网络时间精同步提供新的解决方案。 fileciteturn11file0L378-L391
+
+---
+
+## 参考文献
+
+> 说明：参考文献为论文原文内容；英文条目保留原格式（可按需自行翻译）。 fileciteturn11file0L392-L429
+
+1. HE Jianhui，RAO Zhihong. Model and simulation of Link22 based on OPNET[J]. *Communications technology*, 2009, 42(10): 97-99. fileciteturn11file0L393-L395  
+2. 梁炎，陆建勋. Link22-北约国家的下一代战术数据链[J]. 舰船电子工程，2006, 26(1): 3-7. fileciteturn11file0L396-L397  
+3. WANG Xiang，BAI Xiang，PAN Lili. Message exchange strategy in NATO Link22 system[J]. *Communications technology*, 2013, 46(12): 34-37. fileciteturn11file0L398-L399  
+4. ZUO Wei. A dynamic TDMA protocol based on high frequency data link system[J]. *Communications technology*, 2014, 47(4): 406-409. fileciteturn11file0L400-L401  
+5. TIAN Yu. An improving network synchronization algorithm for tactical data-link[J]. *Command control & simulation*, 2013, 35(5): 27-29, 38. fileciteturn11file0L402-L404  
+6. HU Zhihui，ZHOU Yu. Research and implementation of hardware timestamp based on IEEE 1588 protocol[C]//Proceedings of the 2013 5th International Conference on Computational and Information Sciences. Shiyang, China: IEEE, 2013: 1586-1589. fileciteturn11file0L405-L409  
+7. 陈旿，孙建华，于振兴，等. 基于 IEEE 1588 的无线传感器网络时钟同步方法[J]. 系统工程与电子技术，2014, 36(3): 564-574. fileciteturn11file0L410-L412  
+8. 田斌鹏，刘丽丽. 分布式数据链的定周期自适应时间对准[J]. 电讯技术，2015, 55(6): 689-692. fileciteturn11file0L413-L414  
+9. LIU Yingshu，YANG Cheng，LIU Shupei. A self-compensation procedure for the IEEE 1588 PTP local clock[J]. *International journal of engineering systems modelling and simulation*, 2014, 6(1/2): 69-79. fileciteturn11file0L415-L415  
+10. MAHMOOD A，EXEL R，SAUTER T. Delay and jitter characterization for software-based clock synchronization over WLAN using PTP[J]. *IEEE transactions on industrial informatics*, 2014, 10(2): 1198-1206. fileciteturn11file0L416-L418  
+11. MAHMOOD A，RING F，NAGY A，et al. High precision and robustness in network-based clock synchronization using IEEE 1588[C]//Proceedings of the 2014 IEEE Emerging Technology and Factory Automation (ETFA). Barcelona, Spain: IEEE, 2014. fileciteturn11file0L419-L421  
+12. GIORGI G，NARDUZZI C. Performance analysis of kalman-filter-based clock synchronization in IEEE 1588 networks[J]. *IEEE transactions on instrumentation and measurement*, 2011, 60(8): 2902-2909. fileciteturn11file0L422-L422  
+13. IEEE Instrumentation and Measurement Society. Revision of IEEE Std 1588TM-2002, IEEE standard for a precision clock synchronization protocol for networked measurement and control systems[S]. New York, USA: The Institute of Electrical and Electronics Engineers, Inc., 2008. fileciteturn11file0L423-L427  
+14. CHEN Wu，SUN Jianhua，ZHANG Lu，et al. An implementation of IEEE 1588 protocol for IEEE 802.11 WLAN[J]. *Wireless networks*, 2015, 21(6): 2069-2085. fileciteturn11file0L428-L429  
+
+---
+
+## 本文引用格式（原文）
+
+陈威，刘彤. 基于卡尔曼滤波的 Link-22 数据链网络时间同步算法[J]. 应用科技，2016, 43(3): 53-58. fileciteturn11file0L430-L431  
+CHEN Wei，LIU Tong. Clock synchronization algorithm in Link-22 datalink network based on Kalman filter[J]. *Applied science and technology*, 2016, 43(3): 53-58.（已译为中文见上） fileciteturn11file0L432-L433

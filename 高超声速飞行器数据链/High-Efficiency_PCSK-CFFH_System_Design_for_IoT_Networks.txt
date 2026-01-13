@@ -1,0 +1,190 @@
+# High-Efficiency PCSK-CFFH System Design for IoT Networks
+
+**Xuanhe Yang , Jianping An , Member, IEEE, Zhe Song, Shixun Luo , and Aihua Wang, Member, IEEE**
+
+## Abstract
+Industrial Internet of Things (IIoT) brings opportunities for innovation and upgrading to industrial production, but meanwhile, it poses unprecedented challenges on the physical layer of wireless communications. In this article, we propose a novel frequency hopping transmission scheme for IIoT, which owns much high efficiency and strong anti-jamming ability. This new scheme is built based on the combination of coherent fast frequency hopping (CFFH) and cyclic code shift key (CCSK), named phase cyclic shift-keying-based CFFH (PCSK-CFFH). For the proposed PCSK-CFFH system, the shift of orthogonal base sequence is adopted to modulate the phases among interhop, instead of transmitting each hop with the same phase as conventional CFFH. This scheme is able to further exploit the extra dimensions of CFFH signals and enables the CFFH system to transmit additional information at no extra cost on either bandwidth or power. Moreover, the bit error rate performance of the proposed PCSK-CFFH system is analyzed theoretically. To improve its ability against severe narrow-band jamming, the selection combining is introduced in our scheme. Furthermore, the anti-jamming performance of the proposed PCSK-CFFH system is also demonstrated. Finally, the simulation results are shown to demonstrate that: by introducing the interhop dimension to CFFH, PCSK-CFFH improves the power efficiency and spectrum efficiency by multiple times and simultaneously inherits the excellent anti-jamming performance of the conventional CFFH system. It can be concluded that the proposed PCSK-CFFH scheme has a great potential to be applied to low-power and highly reliable IIoT communications.
+
+**Index Terms** — Anti-jamming, cyclic code shift key (CCSK), fast frequency hopping (FFH), Industrial Internet of Things (IIoT).
+
+## I. INTRODUCTION
+WITH the development of Industry 4.0, the Industrial Internet of Things (IIoT) [1], which incorporates cloud computing, big data, embedded computing, and low-power sensors, is being widely used in advanced production processes. IIoT empowers ubiquitous networking and computing capabilities of sensors, machines, and people to enhance the productivity and intelligence of industrial systems. Since it is deployed in critical industrial production sectors, IIoT provides much higher requirements on various issues, e.g., the reliability, latency, and security. In practice, the wireless links in industrial environments suffer from severe multipath fading, strong electromagnetic interference, and malicious jamming. Therefore, designing a robust physical-layer transmission scheme for IIoT is a key issue.
+
+Traditional solutions for anti-jamming include spread spectrum, frequency hopping, and coding techniques. Frequency hopping (FH) is a practical and effective technology widely used in military and industrial communications because it can mitigate narrow-band interference and suppress malicious jamming by rapidly switching carrier frequencies according to a pseudo-random hopping pattern. Based on hop rate relative to symbol rate, FH can be classified into slow frequency hopping (SFH) and fast frequency hopping (FFH). FFH has an inherent advantage over SFH in terms of anti-jamming ability [11]. In FFH, a noncoherent approach has been analyzed in [12] and [13], namely, fast frequency hopped M-ary orthogonal frequency-shift keying (FFH/MFSK) and achieved wide application. Nevertheless, FFH/MFSK employs noncoherent combining on hops level at the receiver, resulting in a low receiver sensitivity. The larger the frequency-domain diversity gain, the worse the receiver sensitivity performance.
+
+In the 1980s, Cherubini and Milstein proposed the coherent FFH (CFFH) system in [14]. They further analyzed the equalization and anti-jamming performance of the CFFH system in [15] and [16]. However, limited by the phase-controlled local oscillator, CFFH was not widely used. With the development of modern RF circuits, the coherent reception of FFH becomes feasible. Recent works have revisited CFFH for IoT communications due to its high sensitivity and anti-jamming performance.
+
+In conventional CFFH, each symbol is transmitted over multiple hops and each hop uses the same phase. Therefore, the signal space is only exploited in the frequency domain (hops) and the time domain (symbols). A key observation is that there exists an extra dimension among interhop phases, which can be used to embed additional information without increasing bandwidth or power.
+
+In this article, we propose a novel CFFH scheme named phase cyclic shift-keying-based CFFH (PCSK-CFFH). PCSK-CFFH introduces the interhop phase dimension as an additional symbol space and combines cyclic code shift keying (CCSK) to improve transmission efficiency. The transmitter and receiver structures are designed and the corresponding performance is analyzed.
+
+The contributions of this article are summarized as follows. 1) In this article, a novel scheme of CFFH is proposed for IIoT, namely, PCSK-CFFH. The proposed scheme introduces the interhop phase dimension as a symbol space to the frequency hopping system and combines the high-efficiency CCSK technology to improve transmission efficiency. We present the PCSK-CFFH system model and the transceiver structure. The complexity of the proposed PCSK-CFFH system relative to the traditional BPSK-CFFH system is also analyzed in-depth, which demonstrates that the proposed PCSK-CFFH scheme is applicable in real scenarios. 2) Over AWGN channels, the bit error rate (BER) performance of the proposed PCSK-CFFH system is analyzed. In PCSK-CFFH, the information bits are mapped to the cyclic shift of the base sequence among interhop phases and the symbol-level baseband signals. The total BER and individual BER of those two parts versus Eb/N0 are derived. Besides, the power efficiency and spectrum efficiency of the PCSK-CFFH system and the BPSK-CFFH system with different spreading gains are compared. The results show that the proposed PCSK-CFFH system is much more efficient than the traditional BPSK-CFFH system. 3) In the presence of severe narrow-band jamming, the anti-jamming performance of the proposed PCSK-CFFH system is analyzed with the selection combining (SC) scheme. For the PCSK-CFFH system, the performance deterioration caused by the nonorthogonality using SC is analyzed analytically. The numerical results are also given for different jamming bandwidths and modulation dimensions, which demonstrates that the PCSK-CFFH system with much higher efficiency has comparable anti-jamming performance to the BPSK-CFFH system.
+
+The remainder of this article is organized as follows. In Section II, we introduce the concept of PCSK-CFFH and describe the transmitter and receiver structure of this system. Subsequently, in Section III, we discuss the BER performance of the PCSK-CFFH system in the presence and absence of jamming. In Section IV, we provide simulation results of PCSK-CFFH against conventional BPSK-CFFH. Finally, Section V concludes this article.
+
+Notations: We use bold uppercase and lowercase letters to represent matrices and vectors, respectively. (·)T, (·)H, and (·)−1 denote the transpose, conjugate transpose (Hermitian), and inverse, respectively. We use E{·} to denote expectation, [ · ] to denote the real part. ⌊x⌋ means the rounding down of x and symbol ⊙ stands for the Hadamard product. diag(x) represents the diagonal matrix with the diagonal specified by vector x. Function circshift(x,N) circularly shifts the elements in x by N positions and δ(t) denotes the impulse function. Furthermore, we use [x]k to denote the kth element of vector x.
+
+## II. PROPOSED PCSK-CFFH SYSTEM
+In this section, the proposed PCSK-CFFH system is introduced. The transmitter and receiver design are presented.
+
+### A. PCSK Modulation
+In a traditional CFFH system, a K-hop FFH system transmits 1 bit by mapping it to the BPSK symbol Yu ∈ {−1, 1} with hop amplitude/phase (e.g., +1 and −1). The hopping pattern for the uth symbol is denoted by a vector αu, which is a permutation of {f1, f2, ..., fK}. The hopping pattern can be represented by
+$$
+αu = [fu,1, fu,2, ..., fu,K]^T \tag{1}
+$$
+
+The uth symbol of PCSK-CFFH is bu ∈ [0, 2K − 1], which is computed based on the M bits in one symbol such as
+$$
+bu = \sum_{m=1}^{M} bu,m 2^{m-1} \tag{2}
+$$
+where bu,m = 0 or 1. The symbols of the inner bits and outer bits are denoted by integers Xu ∈ [1, K] and Yu ∈ {−1, 1}, respectively, which are
+$$
+Xu = 1 + \sum_{m=1}^{M_c} bu,m 2^{m-1} = 1 + \mathrm{mod}(bu, 2^{M-1}) \tag{3}
+$$
+$$
+Yu = 2 bu,M - 1 = 2 \left\lfloor \frac{bu}{2^{M-1}} \right\rfloor - 1. \tag{3}
+$$
+
+In the remaining, the signal model of the proposed PCSK-CFFH system will be derived. The transmitter block diagram of the proposed PCSK-CFFH scheme is illustrated in Fig. 2. The base sequence of the uth symbol is
+$$
+cu = [cu,1, cu,2, ..., cu,K]^T \tag{4}
+$$
+where cu,k ∈ {+1, −1} and cu has a good autocorrelation performance. After cyclically shifting cu by Xu, i.e., c_u^{(Xu)} = circshift(cu, Xu mod K), we have
+$$
+c_u^{(Xu)} = [c^{(Xu)}_{u,1}, c^{(Xu)}_{u,2}, ..., c^{(Xu)}_{u,K}]^T. \tag{5}
+$$
+Then at the kth hop, the baseband signal can be represented by
+$$
+S_{u,k} = Y_u c^{(Xu)}_{u,k}. \tag{6}
+$$
+Together with (1), the transmit signal with normalized power at each hop is
+$$
+S_{\mathrm{PCSK-CFFH}}(t) = \sum_{u=1}^{U} \sum_{k=1}^{K} Y_u c^{(Xu)}_{u,k} \cos(2\pi f_{u,k} t)\, g_{T_h}(t - kT_h) * \delta(t - uT_s) \tag{7}
+$$
+where Th and Ts are the hop duration and symbol duration, respectively, and Ts = KTh. The function gTh(t) is a gate function of width Th, i.e.,
+$$
+g_{T_h}(t) = 1,\ 0 \le t < 1;\ \ 0,\ \mathrm{otherwise}. \tag{8}
+$$
+
+Based on the signal model in (7), it is worth noting that when all elements of c_u^{(Xu)} are equal to 1, the proposed PCSK-CFFH system will degenerate to the traditional BPSK-CFFH system. It is obvious that BPSK-CFFH is a special case of PCSK-CFFH. Different from the traditional BPSK-CFFH system, the proposed PCSK-CFFH system has K-extra dimensions representing the inner bits of Xu. The bandwidth of each hop is set to be the main lobe width of gTh(t), which is (2/Th). Define the total CFFH bandwidth B as the frequency interval from the lower edge of the f1 channel to the upper edge of the fK channel. B is expressed as
+$$
+B = (K-1)\Delta f + \frac{2}{T_h} \tag{9}
+$$
+where Δf denotes the adjacent frequency channel interval. To maintain the carrier phase difference constant during channel switching, Δf should be chosen so that Δf Th is an integer.
+
+Based on the definitions of Xu and Yu in (3), it is obvious that Xu and Yu are independent of each other in (7). Based on the bandwidth given in (9) and together with the fact that in each symbol there are M bits to transmit, the spectrum efficiency of the PCSK-CFFH system is
+$$
+\gamma_{\mathrm{PCSK-CFFH}} = \frac{M}{B} = \frac{1+\log_2 K}{(K-1)\Delta f T_s + 2K} \tag{10}
+$$
+where the second equality is based on the equation M = Mc + Ms = log2 K + 1. On the other hand, BPSK-CFFH transmits 1 bit of information per symbol within the same bandwidth, so the spectrum efficiency of the BPSK-CFFH system is
+$$
+\gamma_{\mathrm{BPSK-CFFH}} = \frac{1}{(K-1)\Delta f T_s + 2K}. \tag{11}
+$$
+It is obvious that the spectrum efficiency of the PCSK-CFFH system is M times that of the BPSK-CFFH system.
+
+![Fig. 2. Transmitter structure of PCSK-CFFH.](figures/fig2.jpeg)
+
+### B. PCSK-CFFH Receiver Design
+In this section, the full digital receiver of PCSK-CFFH is discussed. As mentioned in Section II-A, the PCSK-CFFH signal can degenerate to the BPSK-CFFH signal via changing all elements of c_u^{(Xu)} in (7) are equal to 1. As this operation is independent of synchronization, the pilot-aided synchronization scheme used in the traditional CFFH system [21], [23] can also be applied to the PCSK-CFFH system. The remaining key work for the PCSK-CFFH system design is the demodulation. To facilitate analysis, in the following derivations and discussions, it is assumed that the system has been ideally synchronized and the phase scatter among hops due to the delay has been compensated.
+
+The received signal model is given based on the structure of the PCSK-CFFH receiver depicted in Fig. 3. After decimation, the uth symbol is
+$$
+z_u = r_u + n_u + J_u \tag{12}
+$$
+where r_u = [r_{u,1}, r_{u,2}, ..., r_{u,K}]^T denotes the signal sequence of the uth symbol. The noise nu and the jamming Ju are independently and identically distributed (i.i.d.) zero-mean Gaussian random variables with the following covariance matrices [23]:
+$$
+E\{n_u n_u^H\} = \sigma_n^2 I \tag{13}
+$$
+$$
+E\{J_u J_u^H\} = \mathrm{diag}(P_{J,1}, P_{J,2}, ..., P_{J,K}) \tag{13}
+$$
+where σn^2 is the variance of each hop noise and PJ,k is the jamming power of the kth hop.
+
+When channel fading is taken into account, the channel coefficient of the kth hop is denoted as ak. Together with (6), in the kth hop, the received baseband signal equals
+$$
+r_{u,k} = \frac{\sqrt{E_s R_s}}{K} Y_u a_k S_{u,k} = \frac{\sqrt{E_s R_s}}{K} Y_u a_k c^{(Xu)}_{u,k} \tag{14}
+$$
+where Es is the symbol power at the receiver and Rs = (1/Ts) is the symbol rate. Based on (14), the vector ru can be further expressed as
+$$
+r_u = \frac{\sqrt{E_s R_s}}{K} Y_u A c_u^{(Xu)} = \frac{\sqrt{E_s R_s}}{K} Y_u A C_u p_{Xu} \tag{15}
+$$
+where A is the channel coefficient matrix of the following form:
+$$
+A = \mathrm{diag}(a_1, a_2, ..., a_K) \tag{16}
+$$
+The matrix Cu is the inner symbol space, which equals
+$$
+C_u = \mathrm{toeplitz}(c_u, [c_{u,1}; c_{u,K:2}]) \tag{17}
+$$
+where toeplitz(a,b) represents the Toeplitz matrix with column vectors a as its first column, and the transpose of column vectors b as its first row. The vector pXu is equivalent to a one-hot code sequence of length K, which is defined as
+$$
+[p_{Xu}]_k = 0,\ k \ne X_u;\ \ [p_{Xu}]_k = 1,\ k = X_u. \tag{18}
+$$
+
+Based on (17) and (18), it is straightforward that Cu pXu = c_u^{(Xu)}. Based on their definitions in (3), Xu and Yu in (15) are functions of bu. In the following, we will focus on the recovery of bu from zu in (12) according to the maximum-likelihood (ML) criterion. The sum of jamming and noise, i.e., \tilde{n}_u = n_u + J_u, can be taken as an equivalent noise. Since Ju and nu are independent of each other, \tilde{n}_u obeys
+$$
+\tilde{n}_u \sim \mathcal{N}(0, \Lambda_{\tilde{n}_u}) \tag{19}
+$$
+where Λ_{n~u} is the autocovariance matrix of \tilde{n}_u, which equals
+$$
+\Lambda_{\tilde{n}_u} = \begin{bmatrix}
+\sigma_n^2 + P_{J,1} & & 0 \\
+& \ddots & \\
+0 & & \sigma_n^2 + P_{J,K}
+\end{bmatrix}. \tag{20}
+$$
+The ML estimate of the received symbol \hat{b}_u can be expressed as
+$$
+\hat{b}_u = \arg\max_{b_u \in [0,2^M-1]} f(z_u | b_u). \tag{21}
+$$
+
+...
+
+![Fig. 3. Receiver structure of PCSK-CFFH.](figures/fig3.jpeg)
+
+## III. PERFORMANCE ANALYSIS OF PCSK-CFFH
+In this section, various performance metrics of the proposed PCSK-CFFH system are analyzed. The BER and power efficiency of the proposed PCSK-CFFH system are analyzed first. For completeness, the BERs for the inner bits, outer bits, and total bits are analyzed separately. The anti-jamming performance is also analyzed for the proposed PCSK-CFFH system. Then, a brief comparison between the proposed PCSK-CFFH and traditional BPSK-CFFH systems will be given.
+
+### A. BER Performance and Power Efficiency Analysis
+...
+
+![Fig. 4. Comparison of the efficiency of PCSK-CFFH and BPSK-CFFH.](figures/fig4.png)
+
+### B. Anti-Jamming Performance With Selection Combining in PCSK-CFFH
+...
+
+![Fig. 5. Mean value of lu. Nonorthogonal causes “burr” at the position of X¯u. The parameters are K = 512 and V = 64.](figures/fig5_6.jpeg)
+
+![Fig. 6. Histogram for (β̄u,X¯u/2) along an arbitrary X¯u of 4e4 symbols. The parameters are K = 512 and V = 64, and the corresponding Gaussian fits are overlaid.](figures/fig5_6.jpeg)
+
+## IV. SIMULATIONS AND DISCUSSION
+In this section, the previous theoretical results are verified by the simulations. The performances of the traditional BPSK-CFFH system are used as benchmarks. The widely used extended m-sequence [28] is adopted as the base sequence cu. Extended m-sequence has good autocorrelation properties with sufficient length.
+
+![Fig. 7. Performance of PCSK-CFFH. (a) SER for PCSK-CFFH. (b) BER for PCSK-CFFH.](figures/fig7.png)
+
+![Fig. 8. Performance of the PCSK-CFFH system in jamming scenarios.](figures/fig8.png)
+
+![Fig. 9. Backoff performance of PCSK-CFFH compared to BPSK-CFFH. (a) K = 512. (b) K = 4096.](figures/fig9.png)
+
+## V. CONCLUSION
+In this article, we propose a new frequency hopping scheme named PCSK-CFFH which is applicable to IIoT. The basic idea of PCSK-CFFH scheme is to conduct CCSK on the phases of interhop in order to achieve biorthogonal modulation. Compared to the conventional CFFH, the proposed scheme introduces the extra dimensions of interhop to transmit information without extra cost on either bandwidth or power. The specific structures of the transmitter and receiver are designed for the PCSK-CFFH system in this article. These structures imply that the proposed PCSK-CFFH has a great potential to be applied to low-power and highly reliable IIoT communications. For the proposed PCSK-CFFH system, the BER performance over AWGN channels and the performance in the presence of narrow-band jamming with SC are analyzed theoretically. At the end of this article, the simulation results show the noticeable performance advantages of the proposed PCSK-CFFH system compared to the conventional BPSK-CFFH system in terms of power efficiency and spectrum efficiency.
+
+## REFERENCES
+[1] L. D. Xu, W. He, and S. Li, “Internet of Things in industries: A survey,” IEEE Trans. Ind. Informat., vol. 10, no. 4, pp. 2233–2243, Nov. 2014.
+[2] M. Serro, S. Hack, M. Henze, M. Schulz, and K. Wehrle, “Challenges and opportunities in securing industrial Internet of Things,” IEEE Trans. Ind. Informat., vol. 17, no. 5, pp. 2985–2996, May 2021.
+[3] J. M. Mcginthy and A. J. Michaels, “Secure industrial Internet of Things critical infrastructure node design,” vol. 6, no. 5, pp. 8021–8037, Oct. 2019.
+[4] Z. Li, Y. Liu, K. G. Shin, J. Liu, and Z. Yan, “Interference steering to manage interference in IoT,” IEEE Internet of Things J., vol. 6, no. 6, pp. 10458–10471, Dec. 2019.
+[5] N. Parhizkar, P. K. Sangdeh, and H. Zeng, “Securing ZigBee communications against constant jamming attack using neural network,” IEEE Internet Things J., vol. 8, no. 6, pp. 4957–4968, Mar. 2021.
+[6] A. C. Panchal, V. M. Khadse, and P. N. Mahalle, “Security issues in IoT: A comprehensive survey of attacks on IoT and its countermeasures,” in Proc. IEEE Global Conf. Wireless Comput. Netw. (GCWCN), Lonavala, India, Nov. 2018, pp. 124–130.
+[7] Y. Qian, L. Ma, and X. Liang, “Symmetry chirp spread spectrum modulation used in LoRa cellular Internet of Things,” IEEE Commun. Lett., vol. 22, no. 11, pp. 2230–2233, Nov. 2018.
+[8] M. Letafati, A. Kulehsani, H. Behroozi, and D. W. K. Ng, “Jamming-resilience frequency hopping-aided secure communication for Internet-of-Things in the presence of an untrusted relay,” IEEE Trans. Wireless Commun., vol. 19, no. 10, pp. 6771–6785, Oct. 2020.
+[9] S.-H. Lee and Y.-H. Lee, “Adaptive frequency hopping for Bluetooth robust to WLAN interference,” IEEE Commun. Lett., vol. 13, no. 9, pp. 628–630, Sep. 2009.
+[10] J. Wang and C. Jiang, “Analytical study of FFH systems with square-law diversity combining in the presence of multitone interference,” IEEE Trans. Commun., vol. 48, no. 7, pp. 1188–1196, Jul. 2000.
+[11] S. Luo, S. Zhang, S. Wang, X. Bu, and J. An, “Optimum combining for coherent FFH/DSS spread spectrum receivers in the presence of binary-orthonormal interference access,” Sci. Rep., pp. 53097–53106, 2020.
+[12] F. Yang, W. Xiong, and J. Song, “Equal gain combining-based maximum likelihood detector for FFH/MFSK systems,” IEEE Commun. Lett., vol. 22, no. 7, pp. 1334–1337, Jul. 2018.
+[13] L.-M.-D. Le, K. C. Teh, and K. H. Li, “Jamming rejection using FFH/MFSK ML receiver over fading channels with the presence of impulsive and frequency offsets,” IEEE Trans. Inf. Forensics Security, vol. 8, pp. 1195–1200, 2013.
+[14] G. Cherubini and L. B. Milstein, “Performance analysis of both hybrid and frequency-hopped phase-coherent spread-spectrum systems,” IEEE Trans. Commun., vol. 37, no. 6, pp. 600–611, Jun. 1989.
+[15] V. Luo and L. B. Milstein, “Performance analysis of a coherent frequency hopped spread-spectrum system with multipath channel equalization in the presence of jamming,” IEEE Trans. Commun., vol. 42, nos. 2–4, pp. 1325–1338, Feb.–Apr. 1994.
+[16] G. Cherubini and L. B. Milstein, “Performance analysis of both hybrid and frequency-hopped phase-coherent spread-spectrum systems. II. FH system,” IEEE Trans. Commun., vol. 37, no. 6, pp. 612–622, Jun. 1989.
+[17] M. He, X. Yang, X. Jin, and X. Bu, “Coherent fast frequency hopping Doppler local oscillator based on DDS,” in Proc. IEEE Int. Conf. Commun. Technol. (ICCT), Xi’an, China, Oct. 2019, pp. 1486–1490.
+...

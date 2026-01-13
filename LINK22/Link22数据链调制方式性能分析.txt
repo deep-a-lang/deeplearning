@@ -1,0 +1,257 @@
+# Link22 数据链调制方式性能分析
+
+**刊物：**《信息化研究》（Informatization Research）  
+**卷期：**第 35 卷 第 1 期（2009 年 1 月）  
+**作者：**尹亚兰，邓捷坤  
+**单位：**海军指挥学院（江苏省南京市 210029）  
+**收稿日期：**2008-09-09  **修回日期：**2008-10-17  
+**中图分类号：**TN919.1  
+
+---
+
+## 摘要
+
+Link22 工作频段的频率资源是有限的。为了提高信息速率，Link22 使用了环形星座的 QAM（正交调幅）及 8PSK 的调制方式。在加性高斯白噪声环境下，8PSK 调制方式的误符号率计算方法已相当成熟，而环形星座的 QAM 调制方式的误符号率只有边界较为松弛的计算公式。文中采用将 QAM 环形星座上的星座点分解成两个相互正交的非均匀 PAM（脉冲振幅调制）信号的方法，计算出 Link22 在加性高斯白噪声环境下的 16QAM 环形星座误符号率。计算结果与相关资料相比具有很好的一致性，表明此分析方法是正确可行的。此方法也适于 Link22 的 32QAM 及 64QAM 的调制方式。
+
+**关键词：**Link22；数据链；QAM；误符号率  
+
+---
+
+## 0 引言
+
+Link22 是北约国家的新一代战术数据链。由于其工作频段为 HF 和 UHF，因此频率资源极其有限。为提高频带利用率，Link22 使用了 8PSK、16QAM、32QAM 及 64QAM 的调制方式，实现提高信息速率的目的。
+
+8PSK 及星座点为矩形分布的 16QAM、32QAM、64QAM 性能分析在有关文献中已有介绍，而 Link22 的 16QAM、32QAM、64QAM 的星座点采用的是环形结构，有关文献中的误符号率边界是较松弛的。本文通过计算 Link22 的环形星座 16QAM 的比特误符号率，给出了 Link22 的环形星座 QAM 的比特误符号率计算方法。
+
+---
+
+## 1 Link22 数据链
+
+Link22 数据链是北约对 Link11 的改进型。Link22 的设计目标是取代 Link11 并且与 Link16 兼容。Link22 对 Link11 的改进主要表现在：
+
+a) Link22 使用单音调制解调器，代替了 Link11 中使用的并行多音调制解调器；  
+b) Link22 使用 TDMA 网络协议，代替了 Link11 中使用的点名呼叫协议；  
+c) Link22 使用 72bit F 系列报文，而 Link11 使用 48bit M 系列报文；  
+d) Link22 的改进型方案还考虑将每个时隙的最快 F 系列报文速率从 6 个增加到 16 个；  
+e) 通过将 Link11 的 PAM（脉冲振幅调制）调制方式改为 QAM（正交调幅）调制方式来实现上述改进。
+
+---
+
+## 2 QAM 工作原理
+
+Link22 将调制方式由 Link11 的 PAM 改为 QAM，提高了比特率，使得每个时隙的最快 F 系列报文速率从 6 个增加到 16 个成为可能。
+
+QAM 是一种矢量调制：将信息序列 \(\{a_n\}\) 形成的两个分离的 \(k\) 比特符号先映射（一般采用格雷码）到一个复平面（星座）上，形成复数调制符号；然后将符号的 \(I,Q\) 分量（对应复平面的实部和虚部，也就是水平与垂直方向）分别对两个相互正交的载波进行幅度调制。
+
+调制信号的数学表达式为：
+
+\[
+s_m(t)=\Re\Big[(A_{mc}+jA_{ms})\,g(t)\,e^{j2\pi f_c t}\Big]
+      =A_{mc}g(t)\cos(2\pi f_c t)-A_{ms}g(t)\sin(2\pi f_c t)
+\tag{1}
+\]
+
+式中：\(f_c\) 为载波频率；\(A_{mc}\) 和 \(A_{ms}\) 为承载信息的正交载波信号幅度；\(g(t)\) 为信号脉冲；\(m=1,2,\ldots,M\)；\(0\le t\le T_0\)。
+
+星座点的表达式为：
+
+\[
+(s_{m1},s_{m2})=\left(A_{mc}\sqrt{\frac{1}{2}e_g},\;A_{ms}\sqrt{\frac{1}{2}e_g}\right)
+\tag{2}
+\]
+
+式中：\(e_g\) 为信号脉冲 \(g(t)\) 的能量。
+
+QAM 是幅度、相位联合调制的技术：它同时利用了载波的幅度和相位来传递信息比特，因此在最小距离相同的条件下可实现更高的频带利用率。目前 QAM 最高已达到 1024QAM。
+
+---
+
+## 3 Link22 的调制方式
+
+Link22 的调制方式采用了 8PSK 或者 16QAM、32QAM、64QAM，其中 16QAM、32QAM、64QAM 的星座图如图 1 所示。
+
+> **图 1  Link22 QAM 调制的星座图**  
+> 建议插入图片（将 PDF 对应图另存为图片后放到同目录）：  
+> `![图1 Link22 QAM星座图（a）16星座（b）32星座（c）64星座](./figs/fig1.png)`
+
+下面以分析 16QAM 星座图的误符号率为例，介绍环形星座图的比特误符号率分析方法。
+
+---
+
+## 4 16QAM 比特误符号率的计算
+
+### 4.1 A、B、C、M 各点的误符号率
+
+图 2 为 16QAM 同相分量星座点分布图。
+
+> **图 2  16QAM 同相分量星座点分布**  
+> `![图2 16QAM同相分量星座点分布](./figs/fig2.png)`
+
+设环形的半径为 \(b\)，矩形的边长为 \(a\)，则信号的部分同相分量星座点分别如下：
+
+\[
+\begin{aligned}
+A_x &= b\sqrt{\frac{e_g}{2}}\\
+B_x &= b\cos 30^\circ \sqrt{\frac{e_g}{2}}\\
+C_x &= b\cos 60^\circ \sqrt{\frac{e_g}{2}}\\
+M_x &= \frac{a}{2}\sqrt{\frac{e_g}{2}}\\
+D_x &= 0
+\end{aligned}
+\]
+
+信号的部分正交分量星座点分别如下：
+
+\[
+\begin{aligned}
+D_y &= b\sqrt{\frac{e_g}{2}}\\
+C_y &= b\sin 60^\circ \sqrt{\frac{e_g}{2}}\\
+B_y &= b\sin 30^\circ \sqrt{\frac{e_g}{2}}\\
+M_y &= \frac{a}{2}\sqrt{\frac{e_g}{2}}\\
+A_y &= 0
+\end{aligned}
+\]
+
+例如：如果发送的是 A 信号，接收信号的同相分量满足
+\[
+x < A - \frac{A-B_x}{2}
+\]
+且接收信号的正交分量满足
+\[
+|y| < \frac{a}{4}
+\]
+则 A 被误判。其他信号点误判方法的分析类似。
+
+在噪声为加性高斯白噪声时，16QAM 环形星座的 A、B、C、M 各点的误符号率分别为：
+
+\[
+\begin{aligned}
+P_{Ae}
+&=1-P_{A_xC}P_{A_yC}\\
+&=1-Q\!\left[-\frac{(2-\sqrt{3})b}{4}\sqrt{\frac{e_g}{N_0}}\right]
+\left\{1-2Q\!\left[\frac{a}{4}\sqrt{\frac{e_g}{N_0}}\right]\right\}
+\end{aligned}
+\tag{3}
+\]
+
+\[
+\begin{aligned}
+P_{Be}
+&=1-P_{B_xC}P_{B_yC}\\
+&=1-\Bigg\{1-Q\!\left[\frac{(2-\sqrt{3})b}{4}\sqrt{\frac{e_g}{N_0}}\right]
+        -Q\!\left[\frac{(\sqrt{3}-1)b}{4}\sqrt{\frac{e_g}{N_0}}\right]\Bigg\}\\
+&\quad\ \cdot
+\Bigg\{1-Q\!\left[\frac{(b-a)}{4}\sqrt{\frac{e_g}{N_0}}\right]
+        -Q\!\left[\frac{(\sqrt{3}-1)b}{4}\sqrt{\frac{e_g}{N_0}}\right]\Bigg\}
+\end{aligned}
+\tag{4}
+\]
+
+\[
+\begin{aligned}
+P_{Ce}
+&=1-P_{C_xC}P_{C_yC}\\
+&=1-\Bigg\{1-Q\!\left[\frac{(b-a)}{4}\sqrt{\frac{e_g}{N_0}}\right]
+        -Q\!\left[\frac{(\sqrt{3}-1)b}{4}\sqrt{\frac{e_g}{N_0}}\right]\Bigg\}\\
+&\quad\ \cdot
+\Bigg\{1-Q\!\left[\frac{(\sqrt{3}-1)b}{4}\sqrt{\frac{e_g}{N_0}}\right]
+        -Q\!\left[\frac{(2-\sqrt{3})b}{4}\sqrt{\frac{e_g}{N_0}}\right]\Bigg\}
+\end{aligned}
+\tag{5}
+\]
+
+\[
+\begin{aligned}
+P_{Me}
+&=1-P_{M_xC}P_{M_yC}\\
+&=1-\Bigg\{1-Q\!\left[\frac{(b-a)}{4}\sqrt{\frac{e_g}{N_0}}\right]
+        -Q\!\left[\frac{a}{4}\sqrt{\frac{e_g}{N_0}}\right]\Bigg\}^2
+\end{aligned}
+\tag{6}
+\]
+
+式中：\(Q(x)\) 为高斯概率密度函数尾部曲线下的面积函数（Q 函数）。
+
+---
+
+### 4.2 16QAM 的平均误符号率
+
+每个符号的能量 \(\varepsilon_m\) 为：
+
+\[
+\varepsilon_m=s_{m1}^2+s_{m2}^2
+=\frac{1}{2}e_gA_{mc}^2+\frac{1}{2}e_gA_{ms}^2
+\tag{7}
+\]
+
+因此，平均每个符号的能量 \(\varepsilon_{av}\) 为：
+
+\[
+\varepsilon_{av}
+=\left(12\times \frac{1}{2}e_g b^2 + 4\times \frac{1}{2}e_g\frac{a^2}{2}\right)\times\frac{1}{16}
+\tag{8}
+\]
+
+由于是十六进制，因此 \(\varepsilon_{av}=4\varepsilon_{bav}\)，其中 \(\varepsilon_{bav}\) 为平均每比特能量，因此有：
+
+\[
+e_g=\frac{16\times 4}{6b^2+a^2}\,\varepsilon_{bav}
+\tag{9}
+\]
+
+在计算误符号率时，还须将式（9）及关系
+
+\[
+Q(x)=\frac{1}{2}\operatorname{erfc}\!\left(\frac{x}{\sqrt{2}}\right)
+\]
+
+代入到式（3）～式（6）中。
+
+A、B、C、M 各点的平均误符号率为：
+
+\[
+P_{av}=\frac{P_{Ae}+P_{Be}+P_{Ce}+P_{Me}}{4}
+\tag{10}
+\]
+
+由于 16QAM 星座点的分布在 4 个象限内完全对称，因此 \(P_{av}\) 即为 16QAM 的平均误符号率。
+
+---
+
+### 4.3 16QAM 的比特性能噪比与误符号率曲线图
+
+将上述分析过程转换为 MATLAB 语言，可绘制出图 3。
+
+> **图 3  16QAM 的比特性能噪比与误符号率曲线图**  
+> `![图3 16QAM误符号率曲线](./figs/fig3.png)`
+
+对于环形 32QAM、64QAM 的误符号率分析可用同样的方法得到。
+
+---
+
+## 5 结束语
+
+图 3 的曲线与相关资料相比具有一致性，表明分析方法是正确可行的。
+
+---
+
+## 参考文献
+
+[1] 孙久明，杨丽萍. 信息化战争中的战术数据链[M]. 北京：北京邮电大学出版社，2005.  
+[2] PROAKIS J G. 数字通信[M]. 第 4 版. 张力军，张宗橙，郑宝玉，等译. 北京：电子工业出版社，2003.  
+[3] 樊昌信，等. 通信原理[M]. 北京：国防工业出版社，2001.
+
+---
+
+## 作者简介
+
+尹亚兰（1966—），女，副教授，主要研究方向为通信与信息系统。
+
+---
+
+## （原文英文摘要译文）
+
+**题目（译）：**Link22 调制方式性能分析  
+
+**摘要（译）：**Link22 的频率资源是有限的。为了获得更高的数据率，Link22 采用环形星座 QAM 以及 8PSK 的调制方式。在 AWGN 环境下，8PSK 的 BER 计算方法已较成熟，而环形星座 QAM 的 BER 现有公式较为稀缺。本文计算了环形 16QAM 星座的 BER：其关键在于将 16QAM 星座中的每个点分解成两路互相正交的非均匀 PAM 信号。计算结果与相关资料一致，表明该方法正确；该方法同样适用于 Link22 的 32QAM 与 64QAM 调制系统。  
+
+**关键词（译）：**Link22；数据链；QAM；BER

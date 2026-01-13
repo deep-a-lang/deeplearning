@@ -1,0 +1,526 @@
+1. Link 22 是什么：定位与作用
+
+Link 22 是北约体系内用于战术信息自动交换的战术数据链标准，最初源于 NILE（NATO Improved Link Eleven）计划，总体目标是：
+
+替代 Link 11（克服 Link 11 的固有缺陷），
+
+补充并易于与 Link 16 协同互操作，
+
+提升盟军互操作与指挥作战能力。
+
+在任务层面，公开资料通常将 Link 22 描述为可互联空中、海面、潜艇/水下、地面等平台的战术数据系统，用于交换战术态势与指挥控制相关信息，并可在平时/危机/战争中使用。
+
+2. 标准体系与版本信息（你需要记住的“文档坐标”）
+2.1 核心标准
+
+STANAG 5522：Link 22 的核心北约标准（在公开资料中经常被直接称为 Link 22 的 STANAG）。
+
+与之配套/等价的发布形态常见为 ATDLP‑5.22（标题通常为 Tactical Data Link – Link 22）。
+
+2.2 版本与时间点（公开可核验）
+
+公开标准目录信息显示：STANAG 5522 第 6 版（ATDLP‑5.22 Edition B）发布日期为 2021‑05‑21。
+
+同一公开信息源还显示：第 6 版在 2024‑07‑26 被 第 7 版（2024） 取代（superseded）。
+
+备注：你在学习时可以把“STANAG 5522 / ATDLP‑5.22”当作 Link 22 的规范总入口；但真正可公开获取的“可读内容”，往往来自 NILE PMO 的 Guidebook、培训材料与工业界/学术界综述。
+
+3. NILE 计划背景：组织与参与国
+
+公开资料对 NILE 的基本叙事比较一致：
+
+1980 年代后期北约提出改进 Link 11 的任务需求，推动 NILE 计划并最终形成 Link 22。
+
+NILE 由多国基于谅解备忘录协作推进，早期/核心参与国常见表述包括：加拿大、法国、德国、意大利、荷兰、西班牙、英国、美国（公开材料中也可见“西班牙替代荷兰成为 NILE nation”的说法）。
+
+4. 系统结构：分层架构与关键组件（非常重要）
+
+Link 22 的一个核心工程思想是：采用分层通信栈形成开放式系统架构，子组件之间接口清晰，以便多供应商/多国分工协作与扩展。
+
+4.1 关键组件（公开资料的“标准分块”）
+
+公开资料将 Link 22 通常分为：
+
+TDS（战术数据系统）/主机系统：平台上的作战系统。
+
+DLP（Data Link Processor，数据链处理器）：负责战术消息处理与与 SNC 的接口。
+
+NCE（NILE Communications Equipment）通信设备：由以下子组件构成：
+
+SNC（System Network Controller）
+
+LLC（Link‑Level COMSEC）链路级通信保密模块
+
+SPC（Signal Processing Controller）信号处理控制器
+
+Radio（电台，HF/UHF）
+
+此外，平台集成往往还需要 TOD（Time Of Day）时间源硬件等配套。
+
+4.2 用一张“文字框图”理解端到端链路
+战术数据系统/作战系统 (TDS)
+        │
+数据链处理器 (DLP)  ── 生成/接收战术消息；与其他链路/系统联接
+        │  (DLP-SNC 接口)
+        ▼
+系统网络控制器 (SNC) ── 提供端到端消息通信服务；网络/单元管理；路由与中继；DTDMA；LNE等
+        ▼
+链路级COMSEC (LLC) ── 提供链路通信保密（加密/解密等）
+        ▼
+信号处理控制器 (SPC) ── 调制/解调；差错检测与纠错；TRANSEC 等
+        ▼
+电台 (HF/UHF 固频或跳频)
+        ▼
+空口/传播环境
+
+
+Guidebook 的术语表还把 SNC 与 ISO 七层模型中的传输层/网络层类比，把 SPC 与 数据链路层/物理层类比（并明确 SPC 涵盖 EDAC、调制解调、TRANSEC 等）。
+
+5. 网络组织：Super Network、NILE Network 与规模上限
+5.1 两层网络视角
+
+Link 22 公开资料里最关键的网络组织概念是：
+
+NILE Network（NN）：可理解为“一个具体电台介质/设置下运行的一张 TDMA 网”。
+
+Super Network（SN）：由多个 NILE Network 互联形成更大范围的逻辑网络，使不同介质（HF/UHF）与不同网络之间实现无缝通信扩展。
+
+5.2 规模与并行能力（常考点）
+
+公开 Guidebook 明确给出复杂度上限描述：
+
+一个最简单的 Super Network 可以只有 2 个单元在 1 个 NILE Network上通信；
+
+最复杂的 Super Network 可达到 125 个单元与 8 个 NILE Networks；
+
+单个单元在 Super Network 内可同时参加最多 4 个 NILE Networks。
+
+这也是 Link 22 “多网并行 + 超网互联”的能力基础：同一平台可并行多网运行，用于提升覆盖、冗余与总体带宽。
+
+6. 自动中继与路由：扩大“作战区域”的关键机制
+
+在 Super Network 中，当某单元为扩大覆盖而转发消息时，称为 relay（中继），且公开资料将其描述为 Link 22 的自动功能。
+
+从收益角度，Guidebook 的对比表强调：
+
+Link 11 依赖网控站（Net Control Station）轮询，且对网控站射频可达性敏感；
+
+Link 22 通过路由与中继协议显著扩大“playing area”（可活动区域），即便在 UHF 视距条件下也能扩展覆盖。
+
+7. 传输介质与频段：HF/UHF、固频/跳频
+7.1 频段与传播特性
+
+公开 Guidebook 明确：
+
+HF（2–30 MHz）：提供**超视距（BLOS）**通信，资料中描述为对（但不限于）约 300 海里传输优化；
+
+UHF（225–400 MHz）：提供**视距（LOS）**通信。
+
+7.2 四类“介质类型”（media types）
+
+在 HF 与 UHF 两个频段内，都可用固频或跳频电台，因此形成四类介质：
+
+HF 固频（HF Fixed Frequency）
+
+UHF 固频（UHF Fixed Frequency）
+
+HF 跳频（HF Frequency Hopping）
+
+UHF 跳频（UHF Frequency Hopping）
+
+7.3 介质设置与网络包大小（公开表格信息）
+
+Guidebook 给出一个很关键的工程表：不同介质类型的 Media Coding Frame（MCF）时长、可用网络包（Network Packet）比特数范围等。并明确指出 UHF 跳频的 MCF 时长属于保密数字（以 <CN> 标注）。
+
+下面把该表整理成更适合阅读的中文表述（保持原始信息含义，不补“未知数字”）：
+
+介质类型	MCF 时长（ms）	Media Settings	Fragmentation Rate	Network Packet Size（bits）	备注
+HF 固频	112.5	1–6	1–3	168–1368	公开可见
+UHF 固频	48	1	1–3	608–1824	公开可见
+HF 跳频	112.5	1–4	1	96–240	公开可见
+UHF 跳频	<CN>	1–4	1	464	MCF 时长为保密
+
+这张表的学习价值：它把 Link 22 的“吞吐/时延”与“介质/编码/分片”之间的工程关系直接摆出来：介质设置 + 分片率共同决定可用于承载战术数据的网络包比特数。
+
+8. TDMA 与网络周期结构：Minislot、Timeslot、NCT、DTDMA
+8.1 核心概念
+
+公开 Guidebook 对 Link 22 的 TDMA 描述非常清晰：
+
+每个 NILE Network 的 TDMA 由 NCS（Network Cycle Structure）网络周期结构定义；
+
+时间被划分为固定长度的 minislots（微时隙），其持续时间随介质类型变化；
+
+**timeslot（时隙）**由整数个 minislot 组成；
+
+timeslot 要么分配给某个单元，要么是 Priority Injection（PI） 时隙；
+
+单元通常只能在自己被分配的 timeslot 发射；高优先级消息在满足条件时也可利用 PI 时隙发送；
+
+一个周期称为 NCT（Network Cycle Time），即一个网络周期内所有 timeslots 的 minislot 总和；公开资料给出 NCT 最大可到 1024 个 minislots；
+
+运行中的 NCS 称 ONCS；Link 22 可通过 **DTDMA（Dynamic TDMA）**调整 ONCS。
+
+8.2 用公式把“周期结构”讲清楚（LaTeX）
+
+设一个网络周期内共有 
+𝑀
+M 个 timeslots，第 
+𝑖
+i 个 timeslot 由 
+𝑘
+𝑖
+k
+i
+	​
+
+ 个 minislot 构成，则：
+
+N
+C
+T
+=
+∑
+𝑖
+=
+1
+𝑀
+𝑘
+𝑖
+,
+1
+≤
+N
+C
+T
+≤
+1024
+NCT=
+i=1
+∑
+M
+	​
+
+k
+i
+	​
+
+,1≤NCT≤1024
+
+minislot 的实际时间长度与介质相关，因此周期的实际秒数可写为：
+
+𝑇
+c
+y
+c
+l
+e
+=
+N
+C
+T
+⋅
+𝑇
+m
+i
+n
+i
+s
+l
+o
+t
+(
+media
+)
+T
+cycle
+	​
+
+=NCT⋅T
+minislot
+	​
+
+(media)
+
+其中 
+𝑇
+m
+i
+n
+i
+s
+l
+o
+t
+(
+media
+)
+T
+minislot
+	​
+
+(media) 由所选介质类型决定。
+
+8.3 一个“文本示意图”帮助记忆
+一个网络周期（NCT） = 多个 timeslot 的拼接
+| TS(NU1) | TS(NU2) | PI | TS(NU3) | TS(NU4) | ... |
+   ↑分配给单元          ↑优先注入时隙（未固定分配）
+
+9. 战术消息：F/FJ、72-bit Tactical Message Word、与 Link 16 的关系
+9.1 战术消息的“基本粒度”
+
+公开 Guidebook 给出非常关键的结构化信息：
+
+Link 22 传输的战术消息由 **1 到 8 个 Tactical Message Words（TMW）**组成；
+
+每个 TMW 为 72 bit；
+
+一个战术消息可以包含“独有的 F‑Series 信息”，也可以承载 FJ‑Series（用于封装/承载 Link 16 的 J‑Series 消息或其部分）。
+
+由此你可以快速得到一个“消息比特量级”的直观认识：
+
+战术消息原始比特数
+=
+72
+×
+𝑛
+(
+𝑛
+∈
+{
+1
+,
+2
+,
+…
+,
+8
+}
+)
+战术消息原始比特数=72×n(n∈{1,2,…,8})
+9.2 为什么说它“更容易与 Link 16 协同”
+
+公开培训材料与 Guidebook 都强调：
+
+Link 22 的消息集合属于 J‑family / J‑series 家族，与 Link 16 共享数据字典/字段定义，从而使跨链路转发/转换相对更容易，避免 Link 11 那种 M‑series 难翻译的问题。
+
+9.3 “密封信封”式处理（很有特色）
+
+Guidebook 还提出一个常被引用的工程点：
+
+Link 22 的系统设计允许把战术数据内容当作“密封信封”传输；也就是说，只要到 DLP 之外（例如 SNC/下层链路）并不一定需要理解战术数据语义即可完成传输；
+
+这使得在某些场景下，即便战术数据由更高层加密保护，仍可由 Link 22 传输（公开资料对比称 Link 16 终端需要保留对战术数据的访问能力）。
+
+10. QoS（服务质量）：优先级、可靠性、时效性、寻址方式
+
+Link 22 的一个重要“可用性提升”来源就是 QoS 机制：DLP 在请求发送时携带 QoS 属性，系统再据此打包与调度。
+
+10.1 发送请求 TSR（Transmission Service Request）
+
+公开资料描述：DLP 通过 TSR 向系统请求传输，并在 TSR 中包含多项 QoS。
+
+10.2 可靠性等级（公开给出“概率”）
+
+Guidebook 公开给出 3 个可靠性等级：
+
+Standard Reliability：80% 接收概率
+
+High Reliability：90% 接收概率
+
+Guaranteed Delivery：保证交付协议（使用确认机制，尽量减少不必要重复发送）
+
+10.3 指示标志（Indicator Flags）
+
+公开资料提到至少两个常用指示：
+
+Priority Injection Indicator：允许优先级 1 的消息进入 PI 时隙（如果可用）；
+
+Radio Silence Override Indicator：在无线电静默状态下仍允许该消息发射。
+
+10.4 寻址方式（5 类）
+
+Guidebook 明确：寻址服务有“带确认/不带确认”两类；寻址类型共 5 种：
+
+Totalcast：所有 Link 22 单元
+
+Neighborcast：本单元所在各 NILE Network 上的射频邻居
+
+MASN（Mission Area Sub Network）：预先定义的逻辑编组
+
+Dynamic List：请求中指定 2–5 个单元
+
+Point‑to‑Point：请求中指定 1 个单元
+
+11. 安全：COMSEC、TRANSEC、密钥装载与跳频
+11.1 LLC 提供链路级 COMSEC
+
+公开 Guidebook 写明：
+
+LLC 提供系统级通信保密（COMSEC）；
+
+LLC 使用**周密钥（weekly key）**进行数据加解密；
+
+可同时装载两套密钥，使其在最长约 14 天内无需操作员干预完成连续运行（可提前装载下一周密钥）。
+
+11.2 TRANSEC 与跳频
+
+Guidebook 的术语表指出：SPC 功能包含 **TRANSEC（Transmission Security，传输安全）**等；工业界资料也常将“跳频电台能力”与“加密机制”并列为安全通信的重要手段。
+
+注意：公开资料会提到“UHF 跳频某些帧参数为保密”这类边界提示，但不会给出具体跳频方案细节；学习时把它当作“存在 TRANSEC 层能力与选项”即可。
+
+12. 网络管理：SNMU/NMU、自动接管、LNE（迟入网）
+12.1 管理角色：SNMU 与 NMU
+
+公开 Guidebook 说明 Link 22 的网络管理目标是“更自动化、更易规划与运行”，并定义两类关键管理角色：
+
+SNMU（Super Network Management Unit）：对整个 Super Network 负总责；
+
+NMU（Network Management Unit）：对各自 NILE Network 负责；
+
+每个角色都有 standby 单元自动接管机制：若现任管理单元失效，备用单元自动接替，并立即再指派新的备用单元；即使没有单元在执行管理角色，系统也应可继续运行（强调无单点）。
+
+12.2 Late Network Entry（LNE）
+
+公开资料明确：如果单元错过初始化的网络启动时间，仍可通过 LNE 协议加入，获取当前网络参数（这些参数可能在运行中已变化）。
+
+并且公开术语/定义中可见三种加入情形（至少两种在公开文本中定义得很清楚）：
+
+Inactive Join：迟入网单元在加入时并非任何 NILE Network 的活动成员；
+
+Active Join：迟入网单元加入时，已经是至少一个其他 NILE Network 的活动成员；
+
+Silent Join：单元希望“只听不发”，监听网络而不进行任何发射。
+
+13. 拥塞管理：两类拥塞来源与“中继流控”概念
+
+公开 Guidebook 给出了很实用的拥塞管理思路（这里用中文转述其要点）：
+
+13.1 单元拥塞的两大来源
+
+本单元 DLP 请求发送的消息（DLP 可控）；
+
+从别的单元收到、需要本单元中继转发的消息（通常不由本单元 DLP 控制）。
+
+13.2 缓解手段（公开描述的层级）
+
+对于来源 (1)：DLP 可以删除部分发送请求，或降低发送请求速率来降拥塞。
+
+对于来源 (2)：在高拥塞时，DLP 可被告知当前中继消息并决定是否删除部分中继消息——这是“最后手段”，会影响消息交付；该决策过程称为 Relay Flow Control（中继流控）。
+
+14. 与 Link 11 / Link 16 的对比：为什么要上 Link 22（公开对比表精华）
+
+下面把 Guidebook 公开对比表中最核心的点，整理成“学习版表格”。
+
+14.1 Link 11 vs Link 22（机制与能力）
+维度	Link 11	Link 22
+接入机制	轮询/网控站（Roll Call）	TDMA（确定性接入），并可用 PI 时隙降低紧急信息延迟
+参网规模	公开对比表给出“参与者数受限（如 62）”	可到 125（并支持多网、超网）
+坐标/作战区域	依赖 DLRP 等导致“playing area”受限，极区受限	使用 WGS‑84（与 Link 16 一致），并可多网+超网扩大区域
+抗欺骗/抗干扰	安全弱点更易欺骗；单一固频网易被压制	更难欺骗（公开资料提到时间相关加密特征等）；多网+跳频使压制更困难
+网控单点	网控站丢失会导致网络崩溃	不依赖网控站，强调无单点
+消息与互联	M‑series 难翻译，跨链路转发复杂	属于 J‑series 家族，数据字典一致，转发更容易
+14.2 Link 16 vs Link 22（互补关系）
+
+公开资料对二者常见定位是：
+
+Link 16 更偏对空作战/复杂健壮，但 UHF 视距限制下常需空中中继；
+
+Link 22 更偏海上战术数据链，利用 HF 的 BLOS 以及 HF/UHF 自动中继减少对空中中继依赖，并通过多网并行提升可用带宽；网络管理也被描述为更自动化。
+
+15. 数据率与带宽：公开可见的数值与“多网叠加”计算
+
+Guidebook 在“数据率对比”中给出：
+
+Link 11：约 1090 或 1800 bps（取决于模式）
+
+Link 16：约 26,880–107,520 bps（与打包结构相关）
+
+Link 22（固频）：
+
+HF：1493–4053 bps
+
+UHF：12,666 bps
+
+并明确指出：Link 22 可同时在 最多 4 个网络上运行，从而提高总带宽。
+
+15.1 带宽叠加公式（LaTeX）
+
+若平台并行运行 
+𝑁
+N 个网络（每个网络可近似视作提供一条“可用于战术数据的原始数据率”），则：
+
+𝑅
+total
+≈
+∑
+𝑖
+=
+1
+𝑁
+𝑅
+𝑖
+R
+total
+	​
+
+≈
+i=1
+∑
+N
+	​
+
+R
+i
+	​
+
+
+Guidebook 给出两个典型组合例子（便于你验证“叠加思路”）：
+
+3 个 HF + 1 个 UHF（固频）：总计 24,825 bps
+
+2 个 HF + 2 个 UHF（固频）：总计 33,438 bps
+
+你可以观察到：这些数值与“选用 HF 上限 4053 bps + UHF 12666 bps”的叠加关系吻合，体现了公开资料强调的“多网并行提升带宽”的工程逻辑。
+
+16. 规划与初始化：OPTASK Link Message（OLM）与基础参数
+
+公开资料指出：Link 22 各单元初始化需要共享一组基础参数，以减少系统分发的配置量；这些基础参数由网络规划人员编制进 OPTASK Link Message（OLM），由 TDS/DLP 提供给 SNC 初始化使用，并在 SNC 内维护为 Super Network Directory的一部分。
+
+规划时要考虑参与单元数量、各单元的预期吞吐需求、与其他战术数据链的协同等。
+
+17. 速查术语表（建议你背的 12 个）
+
+NILE / Link 22：NATO Improved Link Eleven 计划产物，战术数据链标准。
+
+NU（NILE Unit）：具有 Link 22 地址、按 STANAG 5522 收发信息的 NILE 节点。
+
+NN（NILE Network）：单张网络（同一 TDMA/NCS/介质条件）。
+
+SN（Super Network）：一个部署的 Link 22 系统，可含一个或多个互联 NILE Networks。
+
+SNMU / NMU：超网/子网管理单元（含备用接管）。
+
+NCS / ONCS：网络周期结构 / 运行中的周期结构。
+
+TDMA / DTDMA：时分多址 / 动态时分多址（可调整 ONCS）。
+
+Minislot / Timeslot / NCT：微时隙 / 时隙 / 网络周期时间。
+
+TSR：发送服务请求（携带 QoS 属性）。
+
+MASN：任务区域子网（逻辑编组寻址）。
+
+LNE：迟入网协议。
+
+COMSEC / TRANSEC：通信保密 / 传输安全。
+
+18. 建议学习路径（按“理解成本”排序）
+
+先理解结构：DLP–SNC–LLC–SPC–Radio 的分层与职责边界（第 4 节）。
+
+再理解网络组织：NN / SN、最多 4 网并行、最多 8 网组成超网、最多 125 单元（第 5 节）。
+
+再理解 TDMA 时间结构：minislot / timeslot / PI / NCT / DTDMA（第 8 节）。
+
+最后理解 QoS 与拥塞：可靠性等级、寻址、radio silence override、Relay Flow Control（第 10–13 节）。
